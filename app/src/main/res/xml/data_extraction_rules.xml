@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Data extraction rules configured for FastGit3.
+   This controls cloud backups and device-to-device transfers on Android 12 (API 31) and newer.
+-->
+<data-extraction-rules>
+    <!-- Rules for encrypted Google Cloud backups -->
+    <cloud-backup>
+        <!-- Back up all database files (your keystores) -->
+        <include domain="database" path="." />
+        
+        <!-- Back up all shared preferences (your secure token files) -->
+        <include domain="sharedpref" path="." />
+        
+        <!-- Exclude internal background worker preferences to save space -->
+        <exclude domain="sharedpref" path="androidx.work.multiprocess.preferences.xml" />
+    </cloud-backup>
+
+    <!-- Rules for physical cable transfers and offline backup tools (Seedvault) -->
+    <device-to-device>
+        <!-- Transfer your database files to the new device -->
+        <include domain="database" path="." />
+        
+        <!-- Transfer your shared preferences and login states -->
+        <include domain="sharedpref" path="." />
+        
+        <!-- Exclude local worker background states -->
+        <exclude domain="sharedpref" path="androidx.work.multiprocess.preferences.xml" />
+    </device-to-device>
+</data-extraction-rules>
