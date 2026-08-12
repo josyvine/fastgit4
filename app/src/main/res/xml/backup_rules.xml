@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Backup rules configured for FastGit3.
+   This controls cloud and local backups on Android 11 (API 30) and older.
+-->
+<full-backup-content>
+    <!-- Include all database files (your keystore profiles and repository directories) -->
+    <include domain="database" path="." />
+
+    <!-- Include all shared preferences (your secure token files and preferences) -->
+    <include domain="sharedpref" path="." />
+
+    <!-- Exclude internal WorkManager databases and temporary preferences to keep the backup clean -->
+    <exclude domain="sharedpref" path="androidx.work.multiprocess.preferences.xml" />
+</full-backup-content>
