@@ -762,7 +762,7 @@ class RepoDetailViewModel(
                         } else {
                             single.content?.toByteArray(Charsets.UTF_8) ?: ByteArray(0)
                         }
-                        result.add(item.copy(byteContent = bytes, content = single.content))
+                        result.add(item.copy(byteContent = bytes, content = single.content, sha = single.sha ?: item.sha))
                     } catch (e: Exception) {
                         AppLogger.e("GitHubAPI", "Failed to fetch content for file ${item.path}: ${e.message}", e)
                         result.add(item)
