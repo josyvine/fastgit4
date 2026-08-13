@@ -62,6 +62,11 @@ fun RepoDetailScreen(
     val uploadStep by repoDetailViewModel.uploadStep.collectAsState()
     val uploadProgress by repoDetailViewModel.uploadProgress.collectAsState()
 
+    // Smart Refactoring Progress State Collectors (New)
+    val isRefactoring by repoDetailViewModel.isRefactoring.collectAsState()
+    val refactorStep by repoDetailViewModel.refactorStep.collectAsState()
+    val refactorProgress by repoDetailViewModel.refactorProgress.collectAsState()
+
     val activeFile by repoDetailViewModel.activeFile.collectAsState()
     val fileContent by repoDetailViewModel.fileContent.collectAsState()
 
@@ -438,6 +443,54 @@ fun RepoDetailScreen(
                     Text("Cancel", color = GhErrorRed)
                 }
             },
+            containerColor = GhSurfaceDark
+        )
+    }
+
+    // Smart Refactoring Progress Dialog (New)
+    if (isRefactoring) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Refactoring Project Structure", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Scanning, renaming namespace references, and moving physical directory folders on GitHub...",
+                        fontSize = 13.sp,
+                        color = GhTextSecondaryDark
+                    )
+
+                    LinearProgressIndicator(
+                        progress = { refactorProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = GhSuccessGreen,
+                        trackColor = GhCardBorderDark
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = refactorStep,
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "${(refactorProgress * 100).toInt()}%",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = GhAccentBlue
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
             containerColor = GhSurfaceDark
         )
     }
