@@ -1115,6 +1115,7 @@ class RepoDetailViewModel(
                             val updateReq = CreateFileRequest(
                                 message = "Refactor: Update package reference in /${file.path}",
                                 content = b64,
+                                sha = file.sha, // Pass the existing file's SHA to authorize the update
                                 branch = _currentBranch.value
                             )
                             api.createOrUpdateFile(owner, repoName, file.path, updateReq)
