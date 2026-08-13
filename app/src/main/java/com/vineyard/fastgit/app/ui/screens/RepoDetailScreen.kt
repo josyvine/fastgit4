@@ -1095,10 +1095,11 @@ fun ExplorerTabContent(
         )
     }
 
-    // Global Search & Replace Dialog (Refactoring Tool)
+    // Global Search & Replace Dialog (Refactoring Tool) (Updated with Smart Package Refactor Option)
     if (showSearchReplaceDialog) {
         var searchQueryInput by remember { mutableStateOf("") }
         var replaceQueryInput by remember { mutableStateOf("") }
+        var isSmartRefactorEnabled by remember { mutableStateOf(false) }
 
         AlertDialog(
             onDismissRequest = { showSearchReplaceDialog = false },
@@ -1135,6 +1136,35 @@ fun ExplorerTabContent(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    // Toggle option to trigger directory movements alongside text renaming
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isSmartRefactorEnabled = !isSmartRefactorEnabled }
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Checkbox(
+                            checked = isSmartRefactorEnabled,
+                            onCheckedChange = { isSmartRefactorEnabled = it },
+                            colors = CheckboxDefaults.colors(checkedColor = GhAccentBlue)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = "Smart Package Refactor",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Moves physical folders to match the new package structure.",
+                                color = GhTextSecondaryDark,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -1143,9 +1173,13 @@ fun ExplorerTabContent(
                         val sq = searchQueryInput
                         val rq = replaceQueryInput
                         showSearchReplaceDialog = false
-                        repoDetailViewModel.performGlobalSearchAndReplace(sq, rq) { files, count -> }
+                        if (isSmartRefactorEnabled) {
+                            repoDetailViewModel.performSmartPackageRefactor(sq, rq) { _, _ -> }
+                        } else {
+                            repoDetailViewModel.performGlobalSearchAndReplace(sq, rq) { _, _ -> }
+                        }
                     },
-                    enabled = searchQueryInput.isNotBlank(),
+                    enabled = searchQueryInput.isNotBlank() && replaceQueryInput.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
                 ) {
                     Text("Replace All Occurrences")
