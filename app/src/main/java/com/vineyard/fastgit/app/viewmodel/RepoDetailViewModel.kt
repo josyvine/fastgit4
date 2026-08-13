@@ -101,6 +101,16 @@ class RepoDetailViewModel(
     private val _uploadProgress = MutableStateFlow(0f)
     val uploadProgress: StateFlow<Float> = _uploadProgress
 
+    // Progress State for Smart Refactoring (New)
+    private val _isRefactoring = MutableStateFlow(false)
+    val isRefactoring: StateFlow<Boolean> = _isRefactoring
+
+    private val _refactorStep = MutableStateFlow("")
+    val refactorStep: StateFlow<String> = _refactorStep
+
+    private val _refactorProgress = MutableStateFlow(0f)
+    val refactorProgress: StateFlow<Float> = _refactorProgress
+
     // Status / Messages
     private val _statusMessage = MutableStateFlow<String?>(null)
     val statusMessage: StateFlow<String?> = _statusMessage
@@ -994,8 +1004,9 @@ class RepoDetailViewModel(
         if (oldPackage.isBlank() || newPackage.isBlank()) return
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
-                _isLoading.value = true
-                _statusMessage.value = "Starting smart package refactor..."
+                _isRefactoring.value = true
+                _refactorProgress.value = 0.05f
+                _refactorStep.value = "Scanning repository files..."
             }
 
             val oldSlash = oldPackage.replace('.', '/')
@@ -1003,7 +1014,9 @@ class RepoDetailViewModel(
 
             try {
                 if (tokenManager.isDemoMode()) {
+                    delay(1500)
                     withContext(Dispatchers.Main) {
+                        _isRefactoring.value = false
                         _statusMessage.value = "Demo: Refactored $oldPackage -> $newPackage"
                         onFinished(3, 2)
                     }
@@ -1022,28 +1035,60 @@ class RepoDetailViewModel(
                 }
                 collectFiles(allFiles)
 
+                val totalFiles = textFiles.size
                 var filesMoved = 0
                 var filesModified = 0
 
-                for (file in textFiles) {
-                    val rawContent = file.content ?: continue
-                    val text = if (file.encoding == "base64") {
-                        try { String(Base64.decode(rawContent.replace("\n", "").replace("\r", ""), Base64.DEFAULT)) } catch (e: Exception) { rawContent }
-                    } else rawContent
+                textFiles.forEachIndexed { index, file ->
+                    val progressRatio = 0.1f + (index.toFloat() / totalFiles) * 0.9f
+                    withContext(Dispatchers.Main) {
+                        _refactorProgress.value = progressRatio
+                        _refactorStep.value = "Processing ($index/$totalFiles): ${file.name}"
+                    }
+
+                    // Direct byteContent text parsing avoids Base64 decoding flag failures
+                    val text = if (file.byteContent != null && file.byteContent.isNotEmpty()) {
+                        String(file.byteContent, Charsets.UTF_8)
+                    } else if (file.content != null) {
+                        try {
+                            val cleanB64 = file.content.replace("\n", "").replace("\r", "")
+                            String(Base64.decode(cleanB64, Base64.DEFAULT))
+                        } catch (e: Exception) {
+                            file.content
+                        }
+                    } else {
+                        return@forEachIndexed
+                    }
 
                     val hasTextMatch = text.contains(oldPackage)
+                    
+                    // Resolves local disk path package structures differing from declared namespaces
+                    val isSourceFile = file.path.contains("src/main/java/") || file.path.contains("src/main/kotlin/")
                     val isInsidePackageDir = file.path.contains(oldSlash)
 
                     if (hasTextMatch || isInsidePackageDir) {
                         val updatedText = text.replace(oldPackage, newPackage)
                         val b64 = Base64.encodeToString(updatedText.toByteArray(), Base64.NO_WRAP)
 
-                        if (isInsidePackageDir) {
-                            // Bird 1: Move file path locations
-                            val newPath = file.path.replace(oldSlash, newSlash)
+                        if (isSourceFile || isInsidePackageDir) {
+                            // Bird 1: Calculate structural relocation target
+                            val srcRoot = if (file.path.contains("src/main/java/")) {
+                                file.path.substringBefore("src/main/java/") + "src/main/java/"
+                            } else if (file.path.contains("src/main/kotlin/")) {
+                                file.path.substringBefore("src/main/kotlin/") + "src/main/kotlin/"
+                            } else {
+                                ""
+                            }
+
+                            val newPath = if (srcRoot.isNotEmpty()) {
+                                val fileName = file.path.substringAfterLast('/')
+                                srcRoot + newSlash + "/" + fileName
+                            } else {
+                                file.path.replace(oldSlash, newSlash)
+                            }
 
                             withContext(Dispatchers.Main) {
-                                _statusMessage.value = "Moving: $newPath"
+                                _refactorStep.value = "Moving: ${file.name} to /$newPath"
                             }
 
                             val createReq = CreateFileRequest(
@@ -1064,13 +1109,12 @@ class RepoDetailViewModel(
                         } else {
                             // Bird 2: Update configuration contents in-place
                             withContext(Dispatchers.Main) {
-                                _statusMessage.value = "Updating configs in: ${file.name}"
+                                _refactorStep.value = "Updating configurations in: ${file.name}"
                             }
 
                             val updateReq = CreateFileRequest(
                                 message = "Refactor: Update package reference in /${file.path}",
                                 content = b64,
-                                sha = file.sha,
                                 branch = _currentBranch.value
                             )
                             api.createOrUpdateFile(owner, repoName, file.path, updateReq)
@@ -1081,6 +1125,7 @@ class RepoDetailViewModel(
                 }
 
                 withContext(Dispatchers.Main) {
+                    _isRefactoring.value = false
                     _statusMessage.value = "Refactored! Moved $filesMoved files, updated $filesModified configurations."
                     onFinished(filesMoved, filesModified)
                     loadContents(_currentPath.value)
@@ -1088,11 +1133,8 @@ class RepoDetailViewModel(
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    _isRefactoring.value = false
                     _statusMessage.value = "Refactoring failed: ${e.message}"
-                }
-            } finally {
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
                 }
             }
         }
