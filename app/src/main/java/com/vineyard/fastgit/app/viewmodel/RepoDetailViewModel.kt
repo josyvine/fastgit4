@@ -990,6 +990,114 @@ class RepoDetailViewModel(
         }
     }
 
+    fun performSmartPackageRefactor(oldPackage: String, newPackage: String, onFinished: (Int, Int) -> Unit) {
+        if (oldPackage.isBlank() || newPackage.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                _isLoading.value = true
+                _statusMessage.value = "Starting smart package refactor..."
+            }
+
+            val oldSlash = oldPackage.replace('.', '/')
+            val newSlash = newPackage.replace('.', '/')
+
+            try {
+                if (tokenManager.isDemoMode()) {
+                    withContext(Dispatchers.Main) {
+                        _statusMessage.value = "Demo: Refactored $oldPackage -> $newPackage"
+                        onFinished(3, 2)
+                    }
+                    return@launch
+                }
+
+                val api = RetrofitClient.getService(tokenManager)
+                val allFiles = fetchFolderFilesRecursively(api, owner, repoName, "", _currentBranch.value)
+                val textFiles = mutableListOf<FileItem>()
+
+                fun collectFiles(items: List<FileItem>) {
+                    for (i in items) {
+                        if (i.type == "file") textFiles.add(i)
+                        if (i.children.isNotEmpty()) collectFiles(i.children)
+                    }
+                }
+                collectFiles(allFiles)
+
+                var filesMoved = 0
+                var filesModified = 0
+
+                for (file in textFiles) {
+                    val rawContent = file.content ?: continue
+                    val text = if (file.encoding == "base64") {
+                        try { String(Base64.decode(rawContent.replace("\n", "").replace("\r", ""), Base64.DEFAULT)) } catch (e: Exception) { rawContent }
+                    } else rawContent
+
+                    val hasTextMatch = text.contains(oldPackage)
+                    val isInsidePackageDir = file.path.contains(oldSlash)
+
+                    if (hasTextMatch || isInsidePackageDir) {
+                        val updatedText = text.replace(oldPackage, newPackage)
+                        val b64 = Base64.encodeToString(updatedText.toByteArray(), Base64.NO_WRAP)
+
+                        if (isInsidePackageDir) {
+                            // Bird 1: Move file path locations
+                            val newPath = file.path.replace(oldSlash, newSlash)
+
+                            withContext(Dispatchers.Main) {
+                                _statusMessage.value = "Moving: $newPath"
+                            }
+
+                            val createReq = CreateFileRequest(
+                                message = "Refactor: Move & update to /$newPath",
+                                content = b64,
+                                branch = _currentBranch.value
+                            )
+                            api.createOrUpdateFile(owner, repoName, newPath, createReq)
+
+                            val deleteBody = mapOf(
+                                "message" to "Refactor: Delete deprecated path /${file.path}",
+                                "sha" to file.sha,
+                                "branch" to _currentBranch.value
+                            )
+                            api.deleteFile(owner, repoName, file.path, deleteBody)
+
+                            filesMoved++
+                        } else {
+                            // Bird 2: Update configuration contents in-place
+                            withContext(Dispatchers.Main) {
+                                _statusMessage.value = "Updating configs in: ${file.name}"
+                            }
+
+                            val updateReq = CreateFileRequest(
+                                message = "Refactor: Update package reference in /${file.path}",
+                                content = b64,
+                                sha = file.sha,
+                                branch = _currentBranch.value
+                            )
+                            api.createOrUpdateFile(owner, repoName, file.path, updateReq)
+
+                            filesModified++
+                        }
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    _statusMessage.value = "Refactored! Moved $filesMoved files, updated $filesModified configurations."
+                    onFinished(filesMoved, filesModified)
+                    loadContents(_currentPath.value)
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _statusMessage.value = "Refactoring failed: ${e.message}"
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    _isLoading.value = false
+                }
+            }
+        }
+    }
+
     fun switchBranch(branchName: String) {
         _currentBranch.value = branchName
         loadContents("")
