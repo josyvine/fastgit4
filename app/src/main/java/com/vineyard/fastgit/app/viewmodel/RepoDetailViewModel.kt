@@ -1413,7 +1413,7 @@ class RepoDetailViewModel(
                 [Artifact] app-debug.apk bundle successfully constructed (Size: 3.42 MB).
                 [Finished] Process session completed cleanly.
             """.trimIndent()
-            val clipboard = context.getSystemService(Context.BOARD_SERVICE as? String ?: Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Build Logs", mockLogs)
             clipboard.setPrimaryClip(clip)
             Toast.makeText(context, "Build logs copied to clipboard!", Toast.LENGTH_SHORT).show()
@@ -1911,5 +1911,19 @@ fun getSampleAndroidProjectTree(): List<FileItem> {
         FileItem(name = "build.gradle.kts", path = "build.gradle.kts", type = "file", content = "// Top-level build file\nplugins {\n    alias(libs.plugins.android.application) apply false\n}"),
         FileItem(name = "settings.gradle.kts", path = "settings.gradle.kts", type = "file", content = "rootProject.name = \"FastGit\"\ninclude(\":app\")"),
         FileItem(name = "README.md", path = "README.md", type = "file", content = "# FastGit Android Client\n\nA modern GitHub repository manager for Android developers.")
+    )
+}
+
+private fun getSamplePullRequests(): List<PullRequest> {
+    return listOf(
+        PullRequest(id = 1, number = 4, title = "Refactor file explorer tree nodes for fast collapse", state = "open", user = User(login = "developer_android"), createdAt = "2 days ago"),
+        PullRequest(id = 2, number = 3, title = "Add OAuth Token auto-refresh support", state = "closed", user = User(login = "octocat"), createdAt = "1 week ago", merged = true)
+    )
+}
+
+private fun getSampleIssues(): List<Issue> {
+    return listOf(
+        Issue(id = 1, number = 12, title = "Support syntax highlighting for Gradle KTS files", state = "open", user = User(login = "developer_android"), createdAt = "3 hours ago"),
+        Issue(id = 2, number = 9, title = "ZIP upload percentage counter animation smooth scroll", state = "open", user = User(login = "octocat"), createdAt = "Yesterday")
     )
 }
