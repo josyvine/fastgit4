@@ -55,7 +55,7 @@ fun SettingsScreen(
 
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    // local Form Input States
+    // Local Form Input States
     var showCreateForm by remember { mutableStateOf(false) }
     var aliasInput by remember { mutableStateOf("") }
     var keystoreBase64Input by remember { mutableStateOf("") }
@@ -63,13 +63,13 @@ fun SettingsScreen(
     var keyAliasInput by remember { mutableStateOf("") }
     var keyPasswordInput by remember { mutableStateOf("") }
 
-    // local Dropdowns States (Secret Propagation)
+    // Local Dropdowns States (Secret Propagation)
     var selectedRepo by remember { mutableStateOf<Repository?>(null) }
     var selectedAlias by remember { mutableStateOf("") }
     var repoDropdownExpanded by remember { mutableStateOf(false) }
     var aliasDropdownExpanded by remember { mutableStateOf(false) }
 
-    // local Dropdowns States (Raw URL Downloader)
+    // Local Dropdowns States (Raw URL Downloader)
     var selectedDownloaderRepo by remember { mutableStateOf<Repository?>(null) }
     var selectedDownloaderDir by remember { mutableStateOf("") }
     var downloaderRepoDropdownExpanded by remember { mutableStateOf(false) }
@@ -97,32 +97,33 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(GhBgDark)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Screen Title Area
         Text(
             text = "Settings",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
         )
 
-        // Tab Selector Row (Displays 5 icons uniformly without wrapping or scrolling)
+        // Tab Selector Row
         TabRow(
             selectedTabIndex = selectedTabIndex,
-            containerColor = GhSurfaceDark,
-            contentColor = GhAccentBlue,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
             indicator = { tabPositions ->
                 TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                    color = GhAccentBlue
+                    color = MaterialTheme.colorScheme.primary
                 )
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             tabs.forEachIndexed { index, tab ->
                 val isSelected = selectedTabIndex == index
+                val tabColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 Tab(
                     selected = isSelected,
                     onClick = { selectedTabIndex = index },
@@ -130,7 +131,7 @@ fun SettingsScreen(
                         Icon(
                             imageVector = tab.icon,
                             contentDescription = tab.label,
-                            tint = if (isSelected) GhAccentBlue else GhTextSecondaryDark,
+                            tint = tabColor,
                             modifier = Modifier.size(20.dp)
                         )
                     },
@@ -139,7 +140,7 @@ fun SettingsScreen(
                             text = tab.label,
                             fontSize = 10.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) GhAccentBlue else GhTextSecondaryDark,
+                            color = tabColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -161,28 +162,33 @@ fun SettingsScreen(
                     // General Preferences Card
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text("App Preferences", fontWeight = FontWeight.Bold, color = GhAccentBlue, fontSize = 14.sp)
+                            Text(
+                                text = "App Preferences",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 14.sp
+                            )
 
                             SettingsRow(
                                 icon = Icons.Default.Palette,
                                 title = "Theme Mode",
                                 subtitle = themeMode,
                                 onClick = {
-                                    val next = when (themeMode) {
-                                        "Dark" -> "Light"
-                                        "Light" -> "System"
+                                    val next = when (themeMode.trim().lowercase()) {
+                                        "dark" -> "Light"
+                                        "light" -> "System"
                                         else -> "Dark"
                                     }
                                     settingsViewModel.setTheme(next)
                                 }
                             )
 
-                            Divider(color = GhCardBorderDark)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
                             SettingsRow(
                                 icon = Icons.Default.FolderZip,
@@ -191,7 +197,7 @@ fun SettingsScreen(
                                 onClick = {}
                             )
 
-                            Divider(color = GhCardBorderDark)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
                             SettingsRow(
                                 icon = Icons.Default.CleaningServices,
@@ -207,7 +213,7 @@ fun SettingsScreen(
                     // Keystore & Secrets Propagation Manager Card
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -215,24 +221,24 @@ fun SettingsScreen(
                             Text(
                                 text = "Automated Keystore Secrets",
                                 fontWeight = FontWeight.Bold,
-                                color = GhAccentBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 14.sp
                             )
 
                             Text(
                                 text = "Persist build credentials locally and auto-propagate them as Actions Secrets to newly imported repositories.",
                                 fontSize = 12.sp,
-                                color = GhTextSecondaryDark
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
 
-                            Divider(color = GhCardBorderDark)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
                             // Sub-Section 1: Propagate to GitHub Repository Form
                             Text(
                                 text = "Propagate Credentials to GitHub",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 13.sp,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             // Select Target Repository Dropdown
@@ -240,7 +246,7 @@ fun SettingsScreen(
                                 OutlinedButton(
                                     onClick = { repoDropdownExpanded = true },
                                     shape = RoundedCornerShape(8.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(
@@ -255,19 +261,19 @@ fun SettingsScreen(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f)
                                         )
-                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = GhAccentBlue)
+                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     }
                                 }
                                 DropdownMenu(
                                     expanded = repoDropdownExpanded,
                                     onDismissRequest = { repoDropdownExpanded = false },
                                     modifier = Modifier
-                                        .background(GhSurfaceDark)
+                                        .background(MaterialTheme.colorScheme.surface)
                                         .fillMaxWidth(0.85f)
                                 ) {
                                     repositories.forEach { repo ->
                                         DropdownMenuItem(
-                                            text = { Text(repo.fullName, color = Color.White) },
+                                            text = { Text(repo.fullName, color = MaterialTheme.colorScheme.onSurface) },
                                             onClick = {
                                                 selectedRepo = repo
                                                 repoDropdownExpanded = false
@@ -282,7 +288,7 @@ fun SettingsScreen(
                                 OutlinedButton(
                                     onClick = { aliasDropdownExpanded = true },
                                     shape = RoundedCornerShape(8.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(
@@ -297,19 +303,19 @@ fun SettingsScreen(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f)
                                         )
-                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = GhAccentBlue)
+                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     }
                                 }
                                 DropdownMenu(
                                     expanded = aliasDropdownExpanded,
                                     onDismissRequest = { aliasDropdownExpanded = false },
                                     modifier = Modifier
-                                        .background(GhSurfaceDark)
+                                        .background(MaterialTheme.colorScheme.surface)
                                         .fillMaxWidth(0.85f)
                                 ) {
                                     savedAliases.forEach { alias ->
                                         DropdownMenuItem(
-                                            text = { Text(alias, color = Color.White) },
+                                            text = { Text(alias, color = MaterialTheme.colorScheme.onSurface) },
                                             onClick = {
                                                 selectedAlias = alias
                                                 aliasDropdownExpanded = false
@@ -334,7 +340,7 @@ fun SettingsScreen(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = GhSuccessGreen,
-                                    disabledContainerColor = GhCardBorderDark
+                                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                                 ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -344,14 +350,14 @@ fun SettingsScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.VpnKey, contentDescription = null, modifier = Modifier.size(16.dp))
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Propagate Keystore Secrets", fontWeight = FontWeight.Bold)
+                                        Text("Propagate Keystore Secrets", fontWeight = FontWeight.Bold, color = Color.White)
                                     }
                                 }
                             }
 
-                            Divider(color = GhCardBorderDark)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
-                            // Sub-Section 2: Expandable Form to Save a New Keystore local Configuration Profile
+                            // Sub-Section 2: Expandable Form to Save a New Keystore Profile
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -360,14 +366,14 @@ fun SettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = GhAccentBlue)
+                                    Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Add New Keystore Profile", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.White)
+                                    Text("Add New Keystore Profile", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Icon(
                                     imageVector = if (showCreateForm) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                     contentDescription = null,
-                                    tint = GhTextSecondaryDark
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
 
@@ -378,7 +384,10 @@ fun SettingsScreen(
                                         onValueChange = { aliasInput = it },
                                         label = { Text("Profile Alias Name (e.g. MyKeystore)") },
                                         singleLine = true,
-                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                        ),
                                         modifier = Modifier.fillMaxWidth()
                                     )
 
@@ -386,7 +395,10 @@ fun SettingsScreen(
                                         value = keystoreBase64Input,
                                         onValueChange = { keystoreBase64Input = it },
                                         label = { Text("Keystore Base64 String") },
-                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                        ),
                                         modifier = Modifier.fillMaxWidth()
                                     )
 
@@ -395,7 +407,10 @@ fun SettingsScreen(
                                         onValueChange = { keystorePasswordInput = it },
                                         label = { Text("Keystore Password") },
                                         singleLine = true,
-                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                        ),
                                         modifier = Modifier.fillMaxWidth()
                                     )
 
@@ -404,7 +419,10 @@ fun SettingsScreen(
                                         onValueChange = { keyAliasInput = it },
                                         label = { Text("Key Alias") },
                                         singleLine = true,
-                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                        ),
                                         modifier = Modifier.fillMaxWidth()
                                     )
 
@@ -413,7 +431,10 @@ fun SettingsScreen(
                                         onValueChange = { keyPasswordInput = it },
                                         label = { Text("Key Password") },
                                         singleLine = true,
-                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                        ),
                                         modifier = Modifier.fillMaxWidth()
                                     )
 
@@ -426,7 +447,6 @@ fun SettingsScreen(
                                                 keyAlias = keyAliasInput.trim(),
                                                 keyPassword = keyPasswordInput.trim()
                                             )
-                                            // Clear inputs on safe save
                                             aliasInput = ""
                                             keystoreBase64Input = ""
                                             keystorePasswordInput = ""
@@ -436,10 +456,10 @@ fun SettingsScreen(
                                         },
                                         enabled = aliasInput.isNotBlank() && keystoreBase64Input.isNotBlank() && keystorePasswordInput.isNotBlank(),
                                         shape = RoundedCornerShape(8.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("Save Keystore Profile", fontWeight = FontWeight.Bold, color = Color.Black)
+                                        Text("Save Keystore Profile", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.surface)
                                     }
                                 }
                             }
@@ -451,7 +471,7 @@ fun SettingsScreen(
                     // Raw URL Downloader Management Card
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -459,31 +479,31 @@ fun SettingsScreen(
                             Text(
                                 text = "Raw URL Downloader",
                                 fontWeight = FontWeight.Bold,
-                                color = GhAccentBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 14.sp
                             )
 
                             Text(
                                 text = "Recursively scan a repository folder, generate raw GitHub paths for all underlying files, and compile them into a numbered index list document.",
                                 fontSize = 12.sp,
-                                color = GhTextSecondaryDark
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
 
-                            Divider(color = GhCardBorderDark)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
                             // Select Target Repository Dropdown
                             Text(
                                 text = "Select Repository",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 13.sp,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             Box(modifier = Modifier.fillMaxWidth()) {
                                 OutlinedButton(
                                     onClick = { downloaderRepoDropdownExpanded = true },
                                     shape = RoundedCornerShape(8.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(
@@ -498,24 +518,23 @@ fun SettingsScreen(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f)
                                         )
-                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = GhAccentBlue)
+                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     }
                                 }
                                 DropdownMenu(
                                     expanded = downloaderRepoDropdownExpanded,
                                     onDismissRequest = { downloaderRepoDropdownExpanded = false },
                                     modifier = Modifier
-                                        .background(GhSurfaceDark)
+                                        .background(MaterialTheme.colorScheme.surface)
                                         .fillMaxWidth(0.85f)
                                 ) {
                                     repositories.forEach { repo ->
                                         DropdownMenuItem(
-                                            text = { Text(repo.fullName, color = Color.White) },
+                                            text = { Text(repo.fullName, color = MaterialTheme.colorScheme.onSurface) },
                                             onClick = {
                                                 selectedDownloaderRepo = repo
-                                                selectedDownloaderDir = "" // Reset directory selection
+                                                selectedDownloaderDir = ""
                                                 downloaderRepoDropdownExpanded = false
-                                                // Trigger dynamic directory structure scan
                                                 settingsViewModel.fetchDirectoriesForRepository(
                                                     owner = repo.owner?.login ?: "",
                                                     repoName = repo.name,
@@ -532,7 +551,7 @@ fun SettingsScreen(
                                 text = "Select Folder / Directory",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 13.sp,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             Box(modifier = Modifier.fillMaxWidth()) {
@@ -541,8 +560,8 @@ fun SettingsScreen(
                                     enabled = selectedDownloaderRepo != null,
                                     shape = RoundedCornerShape(8.dp),
                                     colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = Color.White,
-                                        disabledContentColor = GhTextSecondaryDark
+                                        contentColor = MaterialTheme.colorScheme.onSurface,
+                                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -558,19 +577,19 @@ fun SettingsScreen(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f)
                                         )
-                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = GhAccentBlue)
+                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     }
                                 }
                                 DropdownMenu(
                                     expanded = downloaderDirDropdownExpanded,
                                     onDismissRequest = { downloaderDirDropdownExpanded = false },
                                     modifier = Modifier
-                                        .background(GhSurfaceDark)
+                                        .background(MaterialTheme.colorScheme.surface)
                                         .fillMaxWidth(0.85f)
                                 ) {
                                     repoDirectories.forEach { dir ->
                                         DropdownMenuItem(
-                                            text = { Text(if (dir.isEmpty()) "root" else "/$dir", color = Color.White) },
+                                            text = { Text(if (dir.isEmpty()) "root" else "/$dir", color = MaterialTheme.colorScheme.onSurface) },
                                             onClick = {
                                                 selectedDownloaderDir = dir
                                                 downloaderDirDropdownExpanded = false
@@ -595,15 +614,15 @@ fun SettingsScreen(
                                 enabled = selectedDownloaderRepo != null && !isDownloadingUrls && !isLoading,
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = GhAccentBlue,
-                                    disabledContainerColor = GhCardBorderDark
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                                 ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.CloudDownload, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.CloudDownload, contentDescription = null, tint = MaterialTheme.colorScheme.surface, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Download Raw URLs List", fontWeight = FontWeight.Bold, color = Color.Black)
+                                    Text("Download Raw URLs List", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.surface)
                                 }
                             }
                         }
@@ -614,12 +633,17 @@ fun SettingsScreen(
                     // Account & Security Card
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text("Account & Security", fontWeight = FontWeight.Bold, color = GhAccentBlue, fontSize = 14.sp)
+                            Text(
+                                text = "Account & Security",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 14.sp
+                            )
 
                             SettingsRow(
                                 icon = Icons.Default.Security,
@@ -628,7 +652,7 @@ fun SettingsScreen(
                                 onClick = {}
                             )
 
-                            Divider(color = GhCardBorderDark)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
                             SettingsRow(
                                 icon = Icons.Default.ExitToApp,
@@ -645,14 +669,14 @@ fun SettingsScreen(
                     // About & Version Card
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("About FastGit", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text("Version 1.0.0 (Build 100)", color = GhTextSecondaryDark, fontSize = 13.sp)
-                            Text("Built with Kotlin, Coroutines & Jetpack Compose for Android", color = GhTextSecondaryDark, fontSize = 12.sp)
+                            Text("About FastGit", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                            Text("Version 1.0.0 (Build 100)", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 13.sp)
+                            Text("Built with Kotlin, Coroutines & Jetpack Compose for Android", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
                         }
                     }
                 }
@@ -663,8 +687,8 @@ fun SettingsScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Log Out", color = Color.White) },
-            text = { Text("Are you sure you want to log out of FastGit?", color = GhTextSecondaryDark) },
+            title = { Text("Log Out", color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text("Are you sure you want to log out of FastGit?", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -674,15 +698,15 @@ fun SettingsScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GhErrorRed)
                 ) {
-                    Text("Log Out")
+                    Text("Log Out", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -693,7 +717,7 @@ fun SettingsScreen(
             title = {
                 Text(
                     text = "Raw URL Downloader",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -705,20 +729,20 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     CircularProgressIndicator(
-                        color = GhAccentBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 3.dp,
                         modifier = Modifier.size(36.dp)
                     )
                     Text(
                         text = downloadStep,
-                        color = Color.LightGray,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center
                     )
                 }
             },
             confirmButton = {},
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -728,7 +752,7 @@ fun SettingsRow(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    iconTint: Color = GhAccentBlue,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
     Row(
@@ -740,8 +764,8 @@ fun SettingsRow(
         Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 15.sp)
-            Text(subtitle, color = GhTextSecondaryDark, fontSize = 12.sp)
+            Text(title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
         }
     }
 }
