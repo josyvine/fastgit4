@@ -185,10 +185,42 @@ class RepoDetailViewModel(
                     _issues.value = getSampleIssues()
                     _workflows.value = listOf(Workflow(1, "Build Android APK", ".github/workflows/android.yml", "active"))
                     _workflowRuns.value = listOf(
-                        WorkflowRun(101, "Build Android APK", "completed", "success", "main", 79, "Update CodeEditorScreen.kt"),
-                        WorkflowRun(102, "Build Android APK", "completed", "success", "main", 78, "Update SyntaxHighlighter.kt"),
-                        WorkflowRun(103, "Build Android APK", "completed", "success", "main", 77, "Update CodeEditorScreen.kt"),
-                        WorkflowRun(104, "Build Android APK", "completed", "success", "main", 76, "Update RepoDetailViewModel.kt")
+                        WorkflowRun(
+                            id = 101,
+                            name = "Build Android APK",
+                            status = "completed",
+                            conclusion = "success",
+                            displayTitle = "Update CodeEditorScreen.kt",
+                            headBranch = "main",
+                            runNumber = 79
+                        ),
+                        WorkflowRun(
+                            id = 102,
+                            name = "Build Android APK",
+                            status = "completed",
+                            conclusion = "success",
+                            displayTitle = "Update SyntaxHighlighter.kt",
+                            headBranch = "main",
+                            runNumber = 78
+                        ),
+                        WorkflowRun(
+                            id = 103,
+                            name = "Build Android APK",
+                            status = "completed",
+                            conclusion = "success",
+                            displayTitle = "Update CodeEditorScreen.kt",
+                            headBranch = "main",
+                            runNumber = 77
+                        ),
+                        WorkflowRun(
+                            id = 104,
+                            name = "Build Android APK",
+                            status = "completed",
+                            conclusion = "success",
+                            displayTitle = "Update RepoDetailViewModel.kt",
+                            headBranch = "main",
+                            runNumber = 76
+                        )
                     )
                     _releases.value = listOf(Release(1, "v1.0.0", "FastGit Initial Release", "Initial Android App release"))
                     AppLogger.s("RepoDetail", "Loaded repository details successfully in Demo Mode")
@@ -1381,7 +1413,7 @@ class RepoDetailViewModel(
                 [Artifact] app-debug.apk bundle successfully constructed (Size: 3.42 MB).
                 [Finished] Process session completed cleanly.
             """.trimIndent()
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboard = context.getSystemService(Context.BOARD_SERVICE as? String ?: Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Build Logs", mockLogs)
             clipboard.setPrimaryClip(clip)
             Toast.makeText(context, "Build logs copied to clipboard!", Toast.LENGTH_SHORT).show()
@@ -1879,27 +1911,5 @@ fun getSampleAndroidProjectTree(): List<FileItem> {
         FileItem(name = "build.gradle.kts", path = "build.gradle.kts", type = "file", content = "// Top-level build file\nplugins {\n    alias(libs.plugins.android.application) apply false\n}"),
         FileItem(name = "settings.gradle.kts", path = "settings.gradle.kts", type = "file", content = "rootProject.name = \"FastGit\"\ninclude(\":app\")"),
         FileItem(name = "README.md", path = "README.md", type = "file", content = "# FastGit Android Client\n\nA modern GitHub repository manager for Android developers.")
-    )
-}
-
-fun getSampleCommits(): List<Commit> {
-    return listOf(
-        Commit(sha = "7f8a9b1", commit = CommitDetail(message = "Update CodeEditorScreen.kt", author = CommitUser(name = "josyvine", date = "Just now"))),
-        Commit(sha = "3c4d5e6", commit = CommitDetail(message = "Add in-file Search & Replace feature", author = CommitUser(name = "josyvine", date = "1 hour ago"))),
-        Commit(sha = "a1b2c3d", commit = CommitDetail(message = "Initial commit with GitHub Actions CI", author = CommitUser(name = "josyvine", date = "Yesterday")))
-    )
-}
-
-fun getSamplePullRequests(): List<PullRequest> {
-    return listOf(
-        PullRequest(id = 1, number = 4, title = "Refactor file explorer tree nodes for fast collapse", state = "open", user = User(login = "developer_android"), createdAt = "2 days ago"),
-        PullRequest(id = 2, number = 3, title = "Add OAuth Token auto-refresh support", state = "closed", user = User(login = "octocat"), createdAt = "1 week ago", merged = true)
-    )
-}
-
-fun getSampleIssues(): List<Issue> {
-    return listOf(
-        Issue(id = 1, number = 12, title = "Support syntax highlighting for Gradle KTS files", state = "open", user = User(login = "developer_android"), createdAt = "3 hours ago"),
-        Issue(id = 2, number = 9, title = "ZIP upload percentage counter animation smooth scroll", state = "open", user = User(login = "octocat"), createdAt = "Yesterday")
     )
 }
