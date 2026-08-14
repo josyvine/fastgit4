@@ -55,8 +55,8 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsViewModel.themeMode.collectAsState()
             val systemDark = isSystemInDarkTheme()
 
-            // Resolve whether to display Dark or Light theme based on user preference
-            val isDarkTheme = when (themeMode) {
+            // Resolve whether to display Dark or Light theme with case-insensitive matching
+            val isDarkTheme = when (themeMode.trim().lowercase()) {
                 "light" -> false
                 "dark" -> true
                 else -> systemDark
