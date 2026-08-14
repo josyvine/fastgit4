@@ -228,7 +228,7 @@ fun RepoDetailScreen(
         }
     }
 
-    // Workflow Build Logs Overlay Dialog (Custom Sized Dialog Overlay)
+    // Workflow Build Logs Overlay Dialog
     if (selectedRunForLogs != null) {
         var showLogsContextMenu by remember { mutableStateOf(false) }
         Dialog(
@@ -246,7 +246,6 @@ fun RepoDetailScreen(
                 color = GhSurfaceDark
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // Compact Custom Header Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -274,7 +273,6 @@ fun RepoDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            // Download APK button (Only visible if run is successful)
                             if (selectedRunForLogs?.status == "completed" && selectedRunForLogs?.conclusion == "success") {
                                 var showConfirmDownloadDialog by remember { mutableStateOf(false) }
                                 
@@ -343,7 +341,7 @@ fun RepoDetailScreen(
                             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                             .background(Color(0xFF04060A), RoundedCornerShape(8.dp))
                             .combinedClickable(
-                                onClick = { /* dismiss selection states */ },
+                                onClick = { },
                                 onLongClick = { showLogsContextMenu = true }
                             )
                             .padding(12.dp)
@@ -580,7 +578,6 @@ fun RepoDetailScreen(
     // Status Message Snackbar
     statusMessage?.let { msg ->
         LaunchedEffect(msg) {
-            // Auto dismiss snackbar state handled by ViewModel or user tap
         }
     }
 }
@@ -600,16 +597,13 @@ fun ExplorerTabContent(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // 0: Tree Explorer (VS Code Style), 1: Folder Navigation (GitHub App Style)
     var explorerMode by remember { mutableStateOf(0) }
 
     var showNewFileDialog by remember { mutableStateOf(false) }
     var showSearchReplaceDialog by remember { mutableStateOf(false) }
 
-    // Track active target directory path for creation or single file upload
     var targetPathForAction by remember { mutableStateOf("") }
 
-    // File picker launcher for uploading a single file from local storage into targeted directory
     val singleFilePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -618,14 +612,11 @@ fun ExplorerTabContent(
         }
     }
 
-    // Dialog state for Rename and Delete
     var renameTargetItem by remember { mutableStateOf<FileItem?>(null) }
     var deleteTargetItem by remember { mutableStateOf<FileItem?>(null) }
 
-    // Maintain expanded directory paths in a state set (Preserve across tree updates)
     var expandedPaths by remember { mutableStateOf(setOf<String>()) }
 
-    // Helper to find node by path inside tree
     fun findNodeByPath(nodes: List<FileItem>, path: String): FileItem? {
         if (path.isEmpty()) return null
         for (node in nodes) {
@@ -638,10 +629,8 @@ fun ExplorerTabContent(
         return null
     }
 
-    // Flatten tree dynamically into a visible list for LazyColumn recycling
     val visibleItems = remember(treeItems, expandedPaths, explorerMode, currentPath) {
         if (explorerMode == 1) {
-            // Folder Navigation Mode: show items at currentPath level only
             if (currentPath.isEmpty()) {
                 treeItems
             } else {
@@ -649,7 +638,6 @@ fun ExplorerTabContent(
                 node?.children ?: emptyList()
             }
         } else {
-            // Tree Explorer Mode: flatten expanded nodes
             val flatList = mutableListOf<FileItem>()
 
             fun flatten(nodes: List<FileItem>, level: Int) {
@@ -692,7 +680,6 @@ fun ExplorerTabContent(
                 .then(if (isMaximized) Modifier.statusBarsPadding() else Modifier)
                 .padding(12.dp)
         ) {
-            // Quick Action Toolbar for Explorer (Hide entirely when maximized)
             if (!isMaximized) {
                 Card(
                     shape = RoundedCornerShape(12.dp),
@@ -706,7 +693,6 @@ fun ExplorerTabContent(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Upload Project ZIP
                             Button(
                                 onClick = onUploadZipClick,
                                 colors = ButtonDefaults.buttonColors(containerColor = GhPrimaryViolet),
@@ -718,7 +704,6 @@ fun ExplorerTabContent(
                                 Text("Upload ZIP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
 
-                            // Search & Replace (VS Code Style)
                             OutlinedButton(
                                 onClick = { showSearchReplaceDialog = true },
                                 shape = RoundedCornerShape(8.dp),
@@ -729,7 +714,6 @@ fun ExplorerTabContent(
                                 Text("Refactor / Replace", fontSize = 11.sp, color = Color.White)
                             }
 
-                            // New File
                             OutlinedButton(
                                 onClick = {
                                     targetPathForAction = currentPath
@@ -776,7 +760,6 @@ fun ExplorerTabContent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // View Mode Switcher Pills (Tree vs Folder View) and Local Search Layout
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -838,7 +821,6 @@ fun ExplorerTabContent(
                     }
                 }
 
-                // Search explorer logic layout
                 var isLocalSearchActive by remember { mutableStateOf(false) }
                 var localSearchQuery by remember { mutableStateOf("") }
 
@@ -926,7 +908,6 @@ fun ExplorerTabContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Breadcrumb Navigation Bar
             BreadcrumbBar(
                 currentPath = currentPath,
                 onNavigatePath = { targetPath -> repoDetailViewModel.navigateToDirectory(targetPath) },
@@ -955,12 +936,10 @@ fun ExplorerTabContent(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            // Directory Explorer Tree List
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Parent Folder Row (..)
                 if (currentPath.isNotEmpty()) {
                     item(key = "parent_folder_nav_up") {
                         ParentFolderNodeRow(
@@ -1889,45 +1868,6 @@ fun CommitsTabContent(repoDetailViewModel: RepoDetailViewModel) {
 }
 
 @Composable
-fun CommitCardItem(commit: Commit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
-        border = ButtonDefaults.outlinedButtonBorder(enabled = true)
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Commit,
-                contentDescription = null,
-                tint = GhAccentBlue,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = commit.commit?.message ?: "Commit ${commit.sha.take(7)}",
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "${commit.commit?.author?.name ?: commit.author?.login ?: "author"} • ${commit.sha.take(7)}",
-                    fontSize = 11.sp,
-                    color = GhTextSecondaryDark
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun PRsTabContent(repoDetailViewModel: RepoDetailViewModel) {
     val pullRequests by repoDetailViewModel.pullRequests.collectAsState()
     var showCreatePRDialog by remember { mutableStateOf(false) }
@@ -2104,7 +2044,6 @@ fun ActionsTabContent(
                 var runMenuExpanded by remember { mutableStateOf(false) }
                 val isRunning = run.status == "in_progress" || run.status == "queued"
 
-                // Dynamic headline resolution matching the official GitHub app
                 val runTitle = run.displayTitle?.ifBlank { null }
                     ?: run.headCommit?.message?.lines()?.firstOrNull()?.ifBlank { null }
                     ?: run.name
