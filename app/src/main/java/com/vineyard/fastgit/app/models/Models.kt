@@ -161,13 +161,28 @@ data class Workflow(
 )
 
 @JsonClass(generateAdapter = true)
+data class WorkflowHeadCommit(
+    val id: String? = null,
+    val message: String? = null,
+    val timestamp: String? = null,
+    val author: CommitUser? = null,
+    val committer: CommitUser? = null
+)
+
+@JsonClass(generateAdapter = true)
 data class WorkflowRun(
     val id: Long = 0,
     val name: String? = "",
     val status: String = "", // "queued", "in_progress", "completed"
     val conclusion: String? = null, // "success", "failure", "cancelled"
+    @Json(name = "display_title") val displayTitle: String? = null,
     @Json(name = "head_branch") val headBranch: String? = "",
     @Json(name = "run_number") val runNumber: Int = 0,
+    val event: String? = null,
+    @Json(name = "head_commit") val headCommit: WorkflowHeadCommit? = null,
+    val actor: User? = null,
+    @Json(name = "created_at") val createdAt: String? = null,
+    @Json(name = "updated_at") val updatedAt: String? = null,
     @Json(name = "html_url") val htmlUrl: String? = ""
 )
 
