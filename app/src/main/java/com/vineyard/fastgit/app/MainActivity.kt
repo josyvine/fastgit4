@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +23,7 @@ import com.vineyard.fastgit.app.ui.screens.AuthScreen
 import com.vineyard.fastgit.app.ui.theme.FastGitTheme
 import com.vineyard.fastgit.app.utils.AppLogger
 import com.vineyard.fastgit.app.viewmodel.AuthViewModel
+import com.vineyard.fastgit.app.viewmodel.SettingsViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -49,7 +51,18 @@ class MainActivity : ComponentActivity() {
         checkAndRequestStoragePermissions()
 
         setContent {
-            FastGitTheme {
+            val settingsViewModel: SettingsViewModel = viewModel()
+            val themeMode by settingsViewModel.themeMode.collectAsState()
+            val systemDark = isSystemInDarkTheme()
+
+            // Resolve whether to display Dark or Light theme based on user preference
+            val isDarkTheme = when (themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> systemDark
+            }
+
+            FastGitTheme(darkTheme = isDarkTheme) {
                 val authViewModel: AuthViewModel = viewModel()
                 authViewModelInstance = authViewModel
 
