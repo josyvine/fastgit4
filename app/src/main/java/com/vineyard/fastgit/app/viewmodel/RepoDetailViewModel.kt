@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import okhttp3.ResponseBody
 
 class RepoDetailViewModel(
@@ -71,7 +72,7 @@ class RepoDetailViewModel(
 
     // Issues
     private val _issues = MutableStateFlow<List<Issue>>(emptyList())
-         val issues: StateFlow<List<Issue>> = _issues
+    val issues: StateFlow<List<Issue>> = _issues
 
     // Actions & Workflows
     private val _workflows = MutableStateFlow<List<Workflow>>(emptyList())
@@ -101,7 +102,7 @@ class RepoDetailViewModel(
     private val _uploadProgress = MutableStateFlow(0f)
     val uploadProgress: StateFlow<Float> = _uploadProgress
 
-    // Progress State for Smart Refactoring (New)
+    // Progress State for Smart Refactoring
     private val _isRefactoring = MutableStateFlow(false)
     val isRefactoring: StateFlow<Boolean> = _isRefactoring
 
@@ -110,6 +111,16 @@ class RepoDetailViewModel(
 
     private val _refactorProgress = MutableStateFlow(0f)
     val refactorProgress: StateFlow<Float> = _refactorProgress
+
+    // Progress State for Downloading Build Artifacts
+    private val _isDownloadingArtifact = MutableStateFlow(false)
+    val isDownloadingArtifact: StateFlow<Boolean> = _isDownloadingArtifact
+
+    private val _artifactDownloadStep = MutableStateFlow("")
+    val artifactDownloadStep: StateFlow<String> = _artifactDownloadStep
+
+    private val _artifactDownloadProgress = MutableStateFlow<Float?>(null)
+    val artifactDownloadProgress: StateFlow<Float?> = _artifactDownloadProgress
 
     // Status / Messages
     private val _statusMessage = MutableStateFlow<String?>(null)
@@ -172,8 +183,13 @@ class RepoDetailViewModel(
                     _commits.value = getSampleCommits()
                     _pullRequests.value = getSamplePullRequests()
                     _issues.value = getSampleIssues()
-                    _workflows.value = listOf(Workflow(1, "Android CI/CD", ".github/workflows/android.yml", "active"))
-                    _workflowRuns.value = listOf(WorkflowRun(101, "Android CI/CD", "completed", "success", "main", 12))
+                    _workflows.value = listOf(Workflow(1, "Build Android APK", ".github/workflows/android.yml", "active"))
+                    _workflowRuns.value = listOf(
+                        WorkflowRun(101, "Build Android APK", "completed", "success", "main", 79, "Update CodeEditorScreen.kt"),
+                        WorkflowRun(102, "Build Android APK", "completed", "success", "main", 78, "Update SyntaxHighlighter.kt"),
+                        WorkflowRun(103, "Build Android APK", "completed", "success", "main", 77, "Update CodeEditorScreen.kt"),
+                        WorkflowRun(104, "Build Android APK", "completed", "success", "main", 76, "Update RepoDetailViewModel.kt")
+                    )
                     _releases.value = listOf(Release(1, "v1.0.0", "FastGit Initial Release", "Initial Android App release"))
                     AppLogger.s("RepoDetail", "Loaded repository details successfully in Demo Mode")
                 } else {
@@ -195,7 +211,6 @@ class RepoDetailViewModel(
                 }
             } catch (e: Exception) {
                 AppLogger.e("RepoDetail", "Failed to load repository details: ${e.message}", e)
-                // Fallback demo sample
                 _repository.value = Repository(name = repoName, fullName = "$owner/$repoName")
                 _treeItems.value = getSampleAndroidProjectTree()
             } finally {
@@ -302,18 +317,14 @@ class RepoDetailViewModel(
         val currentSegmentName = segments[segmentIndex]
         val currentSegmentPath = segments.take(segmentIndex + 1).joinToString("/")
 
-        // Check if the current segment already exists in the list
         val existingNodeIndex = nodes.indexOfFirst { it.name == currentSegmentName && it.type == "dir" }
-
         val mutableNodes = nodes.toMutableList()
 
         if (existingNodeIndex != -1) {
             val existingNode = mutableNodes[existingNodeIndex]
             if (segmentIndex == segments.size - 1) {
-                // We reached the final target directory segment. Graft the newly fetched contents.
                 mutableNodes[existingNodeIndex] = existingNode.copy(children = newChildren.toMutableList())
             } else {
-                // Intermediate segment. Recursively traverse down.
                 val updatedChildren = updateTreeSegmentsRecursively(
                     existingNode.children,
                     segments,
@@ -323,7 +334,6 @@ class RepoDetailViewModel(
                 mutableNodes[existingNodeIndex] = existingNode.copy(children = updatedChildren.toMutableList())
             }
         } else {
-            // Segment doesn't exist. We must create the missing directory node to preserve tree structure.
             val isFinalSegment = segmentIndex == segments.size - 1
             val createdNode = FileItem(
                 name = currentSegmentName,
@@ -333,7 +343,6 @@ class RepoDetailViewModel(
             )
 
             if (!isFinalSegment) {
-                // Populate intermediate descendants recursively
                 val populatedChildren = updateTreeSegmentsRecursively(
                     createdNode.children,
                     segments,
@@ -349,27 +358,16 @@ class RepoDetailViewModel(
         return mutableNodes
     }
 
-    private fun copyTreeWithUpdatedChildren(node: FileItem, targetPath: String, newChildren: List<FileItem>): FileItem {
-        if (node.path == targetPath) {
-            return node.copy(children = newChildren.toMutableList())
-        }
-        if (node.type == "dir" && node.children.isNotEmpty()) {
-            val updatedChildren = node.children.map { copyTreeWithUpdatedChildren(it, targetPath, newChildren) }.toMutableList()
-            return node.copy(children = updatedChildren)
-        }
-        return node
-    }
-
     fun openFile(fileItem: FileItem) {
         AppLogger.i("CodeEditor", "Opening file '${fileItem.path}'")
-        _isLoading.value = true // Display the linear loading progress indicator to provide immediate user feedback
+        _isLoading.value = true
         viewModelScope.launch {
             try {
                 if (tokenManager.isDemoMode()) {
                     val className = fileItem.name.removeSuffix(".kt")
                     _fileContent.value = fileItem.content ?: "// Sample Code Content for ${fileItem.name}\npackage com.vineyard.fastgit.app\n\nclass $className {\n    fun init() {\n        println(\"FastGit Explorer\")\n    }\n}"
                     AppLogger.s("CodeEditor", "Opened file in Demo Mode: ${fileItem.name}")
-                    _activeFile.value = fileItem // Transition UI once loading is safe and complete
+                    _activeFile.value = fileItem
                 } else {
                     val api = RetrofitClient.getService(tokenManager)
                     val details = api.getSingleFileContent(owner, repoName, fileItem.path, _currentBranch.value)
@@ -381,14 +379,14 @@ class RepoDetailViewModel(
                         _fileContent.value = details.content ?: ""
                     }
                     AppLogger.s("CodeEditor", "Successfully fetched file content for ${fileItem.path}")
-                    _activeFile.value = fileItem // Transition UI once loading is safe and complete
+                    _activeFile.value = fileItem
                 }
             } catch (e: Exception) {
                 AppLogger.e("CodeEditor", "Failed to load content for ${fileItem.path}: ${e.message}", e)
                 _fileContent.value = "// Error loading file content: ${e.message}"
-                _activeFile.value = fileItem // Display error message details in editor
+                _activeFile.value = fileItem
             } finally {
-                _isLoading.value = false // Dismiss loader safely
+                _isLoading.value = false
             }
         }
     }
@@ -396,7 +394,6 @@ class RepoDetailViewModel(
     fun downloadSingleFileToDevice(fileItem: FileItem, content: String, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Call our MediaStore file helper to resolve Android Q+ ENOENT file creation issues
                 val targetFile = DownloadUtils.saveTextToDownloads(context, "", fileItem.name, content)
                 withContext(Dispatchers.Main) {
                     if (targetFile != null) {
@@ -492,7 +489,6 @@ class RepoDetailViewModel(
                 _statusMessage.value = "Uploading file to /${targetPath.ifEmpty { "root" }}..."
             }
             try {
-                // Resolve Display Name from ContentResolver
                 var fileName = "uploaded_file"
                 context.contentResolver.query(fileUri, null, null, null, null)?.use { cursor ->
                     val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
@@ -594,11 +590,6 @@ class RepoDetailViewModel(
                     return@launch
                 }
 
-                // Log each scanned file relative path
-                scannedFiles.forEachIndexed { idx, scanned ->
-                    AppLogger.i("ZipUpload", "[$idx] Parsed file: '${scanned.relativePath}' (Base64 size: ${scanned.contentBase64.length})")
-                }
-
                 _uploadStep.value = "Building File Tree and Uploading..."
                 val total = scannedFiles.size
                 var uploadedCount = 0
@@ -627,7 +618,6 @@ class RepoDetailViewModel(
                     }
                 }
 
-                // Construct full FileItem hierarchy from scanned files and set state
                 val newlyExtractedTree = buildFileTreeFromScannedFiles(scannedFiles)
                 AppLogger.s("ZipUpload", "Generated ${newlyExtractedTree.size} top-level nodes in local File Explorer tree")
 
@@ -635,14 +625,12 @@ class RepoDetailViewModel(
                 _uploadProgress.value = 1.0f
 
                 withContext(Dispatchers.Main) {
-                    // Update tree items so user sees all uploaded files immediately!
                     _treeItems.value = newlyExtractedTree
                     _statusMessage.value = "Project ZIP uploaded successfully! ($total files extracted)"
                     _isUploadingZip.value = false
                     AppLogger.s("ZipUpload", "ZIP upload completed successfully! Explorer tree refreshed with $total files.")
                 }
 
-                // Cleanup temp dir
                 tempDir.deleteRecursively()
                 AppLogger.i("ZipUpload", "Temporary extraction directory cleaned up")
 
@@ -675,7 +663,7 @@ class RepoDetailViewModel(
                     val zip = DownloadUtils.createZipFromFolderItems(context, safeName, demoItems)
                     val bytes = zip.readBytes()
                     val savedFile = DownloadUtils.saveBinaryToDownloads(context, "", fileName, bytes)
-                    zip.delete() // Cleanup cached temporary file
+                    zip.delete()
 
                     withContext(Dispatchers.Main) {
                         if (savedFile != null) {
@@ -689,7 +677,6 @@ class RepoDetailViewModel(
 
                 val api = RetrofitClient.getService(tokenManager)
 
-                // 1. Try downloading GitHub's native zipball if downloading root or parent folder
                 val isRootOrParent = folderItem.path.isBlank() || folderItem.name == ".." || folderItem.name == repoName || folderItem.name == "root"
                 if (isRootOrParent) {
                     try {
@@ -711,12 +698,11 @@ class RepoDetailViewModel(
                     }
                 }
 
-                // 2. Recursive file fetcher for specific subfolder or fallback
                 val resolvedFiles = fetchFolderFilesRecursively(api, owner, repoName, folderItem.path, _currentBranch.value)
                 val zip = DownloadUtils.createZipFromFolderItems(context, safeName, resolvedFiles)
                 val bytes = zip.readBytes()
                 val savedFile = DownloadUtils.saveBinaryToDownloads(context, "", fileName, bytes)
-                zip.delete() // Cleanup cached temporary file
+                zip.delete()
                 
                 withContext(Dispatchers.Main) {
                     if (savedFile != null) {
@@ -740,7 +726,7 @@ class RepoDetailViewModel(
     }
 
     private suspend fun fetchFolderFilesRecursively(
-        api: com.vineyard.fastgit.app.network.GitHubApiService,
+        api: GitHubApiService,
         owner: String,
         repo: String,
         dirPath: String,
@@ -1046,7 +1032,6 @@ class RepoDetailViewModel(
                         _refactorStep.value = "Processing ($index/$totalFiles): ${file.name}"
                     }
 
-                    // Direct byteContent text parsing avoids Base64 decoding flag failures
                     val text = if (file.byteContent != null && file.byteContent.isNotEmpty()) {
                         String(file.byteContent, Charsets.UTF_8)
                     } else if (file.content != null) {
@@ -1061,8 +1046,6 @@ class RepoDetailViewModel(
                     }
 
                     val hasTextMatch = text.contains(oldPackage)
-                    
-                    // Resolves local disk path package structures differing from declared namespaces
                     val isSourceFile = file.path.contains("src/main/java/") || file.path.contains("src/main/kotlin/")
                     val isInsidePackageDir = file.path.contains(oldSlash)
 
@@ -1071,7 +1054,6 @@ class RepoDetailViewModel(
                         val b64 = Base64.encodeToString(updatedText.toByteArray(), Base64.NO_WRAP)
 
                         if (isSourceFile || isInsidePackageDir) {
-                            // Bird 1: Calculate structural relocation target
                             val srcRoot = if (file.path.contains("src/main/java/")) {
                                 file.path.substringBefore("src/main/java/") + "src/main/java/"
                             } else if (file.path.contains("src/main/kotlin/")) {
@@ -1107,7 +1089,6 @@ class RepoDetailViewModel(
 
                             filesMoved++
                         } else {
-                            // Bird 2: Update configuration contents in-place
                             withContext(Dispatchers.Main) {
                                 _refactorStep.value = "Updating configurations in: ${file.name}"
                             }
@@ -1115,7 +1096,7 @@ class RepoDetailViewModel(
                             val updateReq = CreateFileRequest(
                                 message = "Refactor: Update package reference in /${file.path}",
                                 content = b64,
-                                sha = file.sha, // Pass the existing file's SHA to authorize the update
+                                sha = file.sha,
                                 branch = _currentBranch.value
                             )
                             api.createOrUpdateFile(owner, repoName, file.path, updateReq)
@@ -1249,7 +1230,6 @@ class RepoDetailViewModel(
     }
 
     fun fetchWorkflowRunLogs(runId: Long) {
-        // Cancel any previously active background polling sessions first
         pollingJob?.cancel()
 
         if (tokenManager.isDemoMode()) {
@@ -1269,7 +1249,6 @@ class RepoDetailViewModel(
             return
         }
 
-        // Launch a continuous, active polling loop scoped to the viewModelScope
         pollingJob = viewModelScope.launch(Dispatchers.IO) {
             var shouldContinuePolling = true
             var isFirstFetch = true
@@ -1297,7 +1276,6 @@ class RepoDetailViewModel(
                         var anyJobActive = false
 
                         for (job in jobs) {
-                            // Track if there are active in-progress or queued jobs to determine polling state
                             if (job.status != "completed") {
                                 anyJobActive = true
                             }
@@ -1307,7 +1285,6 @@ class RepoDetailViewModel(
                                 val logBody = api.getJobLogs(owner, repoName, job.id)
                                 combinedLogs.append(logBody.string())
                             } catch (e: Exception) {
-                                // Handle active step progress checklist fallback on HTTP 404
                                 if (e is retrofit2.HttpException && e.code() == 404) {
                                     combinedLogs.append("[Active Job Build Steps]\n")
                                     combinedLogs.append("--------------------------------------------------\n")
@@ -1340,7 +1317,6 @@ class RepoDetailViewModel(
                             _workflowLogs.value = combinedLogs.toString()
                         }
 
-                        // If all build steps and jobs have completed, we can safely terminate the polling loop
                         if (!anyJobActive) {
                             shouldContinuePolling = false
                         }
@@ -1360,7 +1336,6 @@ class RepoDetailViewModel(
                     }
                 }
 
-                // Delay polling for 3 seconds before executing the next check
                 if (shouldContinuePolling) {
                     delay(3000)
                 }
@@ -1474,12 +1449,23 @@ class RepoDetailViewModel(
     fun downloadWorkflowArtifacts(runId: Long, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
-                _isLoading.value = true
-                _statusMessage.value = "Fetching build artifacts..."
+                _isDownloadingArtifact.value = true
+                _artifactDownloadProgress.value = 0.05f
+                _artifactDownloadStep.value = "Fetching build artifacts..."
             }
             try {
                 if (tokenManager.isDemoMode()) {
-                    delay(1500)
+                    delay(800)
+                    withContext(Dispatchers.Main) {
+                        _artifactDownloadProgress.value = 0.40f
+                        _artifactDownloadStep.value = "Downloading artifact: Hfm-Release-Demo.apk..."
+                    }
+                    delay(800)
+                    withContext(Dispatchers.Main) {
+                        _artifactDownloadProgress.value = 0.75f
+                        _artifactDownloadStep.value = "Extracting APK artifact files..."
+                    }
+                    delay(600)
                     val mockApkBytes = "Mock Release APK Content".toByteArray()
                     val savedFile = DownloadUtils.saveBinaryToDownloads(
                         context,
@@ -1488,12 +1474,15 @@ class RepoDetailViewModel(
                         mockApkBytes
                     )
                     withContext(Dispatchers.Main) {
+                        _artifactDownloadProgress.value = 1.0f
+                        _artifactDownloadStep.value = "Completed!"
                         if (savedFile != null) {
                             _statusMessage.value = "Demo APK saved to Downloads/FastGit/Artifacts/Hfm-Release-Demo.apk"
                             Toast.makeText(context, "Demo APK downloaded successfully!", Toast.LENGTH_LONG).show()
                         } else {
                             _statusMessage.value = "Failed to save Demo APK to local storage"
                         }
+                        _isDownloadingArtifact.value = false
                     }
                     return@launch
                 }
@@ -1508,11 +1497,15 @@ class RepoDetailViewModel(
                     withContext(Dispatchers.Main) {
                         _statusMessage.value = "No build artifacts found for this run."
                         Toast.makeText(context, "No artifacts found to download.", Toast.LENGTH_SHORT).show()
+                        _isDownloadingArtifact.value = false
                     }
                     return@launch
                 }
 
                 AppLogger.i("Artifacts", "Found ${artifacts.size} artifacts. Starting download...")
+
+                val totalArtifacts = artifacts.size
+                var downloadedArtifacts = 0
 
                 for (artifact in artifacts) {
                     if (artifact.expired == true) {
@@ -1520,7 +1513,10 @@ class RepoDetailViewModel(
                         continue
                     }
 
+                    downloadedArtifacts++
                     withContext(Dispatchers.Main) {
+                        _artifactDownloadProgress.value = 0.15f + (downloadedArtifacts.toFloat() / totalArtifacts) * 0.40f
+                        _artifactDownloadStep.value = "Downloading artifact ($downloadedArtifacts/$totalArtifacts): ${artifact.name}..."
                         _statusMessage.value = "Downloading artifact: ${artifact.name}..."
                     }
 
@@ -1528,24 +1524,47 @@ class RepoDetailViewModel(
                     if (downloadResponse.isSuccessful && downloadResponse.body() != null) {
                         val body = downloadResponse.body()!!
                         
-                        // Save stream as a temporary ZIP file in cache
                         val tempZipFile = File(context.cacheDir, "artifact_${artifact.id}.zip")
-                        body.byteStream().use { input ->
-                            tempZipFile.outputStream().use { output ->
-                                input.copyTo(output)
+                        val contentLength = body.contentLength()
+                        val inputStream = body.byteStream()
+                        val outputStream = FileOutputStream(tempZipFile)
+
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        var totalBytesRead: Long = 0
+
+                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                            totalBytesRead += bytesRead
+                            if (contentLength > 0) {
+                                val ratio = totalBytesRead.toFloat() / contentLength
+                                withContext(Dispatchers.Main) {
+                                    _artifactDownloadProgress.value = 0.15f + ratio * 0.50f
+                                }
                             }
                         }
 
-                        // Create extraction directory inside cache
+                        outputStream.flush()
+                        outputStream.close()
+                        inputStream.close()
+
+                        withContext(Dispatchers.Main) {
+                            _artifactDownloadProgress.value = 0.70f
+                            _artifactDownloadStep.value = "Extracting APK files..."
+                        }
+
                         val extractionDir = File(context.cacheDir, "extracted_artifact_${artifact.id}")
                         if (extractionDir.exists()) extractionDir.deleteRecursively()
                         extractionDir.mkdirs()
 
-                        // Unzip the downloaded artifact ZIP file
                         val extractedFiles = ZipUtils.unzip(tempZipFile.inputStream(), extractionDir)
                         AppLogger.s("Artifacts", "Extracted ${extractedFiles.size} files from artifact ZIP.")
 
-                        // Copy each extracted file to public Downloads/FastGit/Artifacts directory
+                        withContext(Dispatchers.Main) {
+                            _artifactDownloadProgress.value = 0.85f
+                            _artifactDownloadStep.value = "Saving APK to Downloads/FastGit..."
+                        }
+
                         for (file in extractedFiles) {
                             val fileBytes = file.readBytes()
                             val savedFile = DownloadUtils.saveBinaryToDownloads(
@@ -1559,11 +1578,12 @@ class RepoDetailViewModel(
                             }
                         }
 
-                        // Clean up temporary workspace files
                         tempZipFile.delete()
                         extractionDir.deleteRecursively()
 
                         withContext(Dispatchers.Main) {
+                            _artifactDownloadProgress.value = 1.0f
+                            _artifactDownloadStep.value = "Download completed!"
                             _statusMessage.value = "Artifact '${artifact.name}' downloaded & extracted successfully!"
                             Toast.makeText(context, "Downloaded '${artifact.name}' to Downloads/FastGit/Artifacts", Toast.LENGTH_LONG).show()
                         }
@@ -1584,7 +1604,8 @@ class RepoDetailViewModel(
                 }
             } finally {
                 withContext(Dispatchers.Main) {
-                    _isLoading.value = false
+                    _isDownloadingArtifact.value = false
+                    _artifactDownloadProgress.value = null
                 }
             }
         }
@@ -1592,7 +1613,6 @@ class RepoDetailViewModel(
 
     fun clearWorkflowLogs() {
         _workflowLogs.value = null
-        // Ensure any active log background polling task is immediately halted on dialog dismiss
         pollingJob?.cancel()
     }
 
@@ -1724,7 +1744,6 @@ class RepoDetailViewModel(
     }
 }
 
-// Data structures representing GitHub Actions Job response structures safely
 data class WorkflowRunJobsResponse(val jobs: List<WorkflowJob>?)
 
 data class WorkflowJob(
@@ -1732,21 +1751,19 @@ data class WorkflowJob(
     val name: String,
     val status: String,
     val conclusion: String?,
-    val steps: List<WorkflowStep>? = emptyList() // Added steps tracking to parse runner step details
+    val steps: List<WorkflowStep>? = emptyList()
 )
 
 data class WorkflowStep(
     val name: String,
-    val status: String, // "queued", "in_progress", "completed"
-    val conclusion: String?, // "success", "failure", "cancelled"
+    val status: String,
+    val conclusion: String?,
     val number: Int
 )
 
-// Builds a nested FileItem hierarchy from scanned extracted ZIP files
 fun buildFileTreeFromScannedFiles(scannedFiles: List<ZipUtils.ExtractedFileInfo>): List<FileItem> {
     if (scannedFiles.isEmpty()) return emptyList()
 
-    // Determine if all paths share a single top-level directory prefix (e.g., "ProjectName-main/")
     val firstSegments = scannedFiles.mapNotNull {
         val parts = it.relativePath.split('/')
         if (parts.size > 1) parts[0] else null
@@ -1789,7 +1806,6 @@ fun buildFileTreeFromScannedFiles(scannedFiles: List<ZipUtils.ExtractedFileInfo>
             currentParentList = dirNode.children
         }
 
-        // Add file node
         val fileName = parts.last()
         val filePath = cleanPath
         val decodedContent = try {
@@ -1812,7 +1828,6 @@ fun buildFileTreeFromScannedFiles(scannedFiles: List<ZipUtils.ExtractedFileInfo>
     return rootList
 }
 
-// Sample Tree Generator for Android Project Structure in Explorer View
 fun getSampleAndroidProjectTree(): List<FileItem> {
     return listOf(
         FileItem(
@@ -1864,6 +1879,14 @@ fun getSampleAndroidProjectTree(): List<FileItem> {
         FileItem(name = "build.gradle.kts", path = "build.gradle.kts", type = "file", content = "// Top-level build file\nplugins {\n    alias(libs.plugins.android.application) apply false\n}"),
         FileItem(name = "settings.gradle.kts", path = "settings.gradle.kts", type = "file", content = "rootProject.name = \"FastGit\"\ninclude(\":app\")"),
         FileItem(name = "README.md", path = "README.md", type = "file", content = "# FastGit Android Client\n\nA modern GitHub repository manager for Android developers.")
+    )
+}
+
+fun getSampleCommits(): List<Commit> {
+    return listOf(
+        Commit(sha = "7f8a9b1", commit = CommitDetail(message = "Update CodeEditorScreen.kt", author = CommitUser(name = "josyvine", date = "Just now"))),
+        Commit(sha = "3c4d5e6", commit = CommitDetail(message = "Add in-file Search & Replace feature", author = CommitUser(name = "josyvine", date = "1 hour ago"))),
+        Commit(sha = "a1b2c3d", commit = CommitDetail(message = "Initial commit with GitHub Actions CI", author = CommitUser(name = "josyvine", date = "Yesterday")))
     )
 }
 
