@@ -69,22 +69,23 @@ fun LiveLogConsoleOverlay() {
             onDismissRequest = { showExportDialog = false },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.FolderZip, contentDescription = null, tint = GhAccentBlue)
+                    Icon(imageVector = Icons.Default.FolderZip, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Log File Saved!", fontSize = 18.sp, color = Color.White)
+                    Text("Log File Saved!", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 }
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Log files have been written to the 'fastgit log' folder in your device storage:",
+                        text = "Log files have been written to the 'fastgit log' folder in your device storage:",
                         fontSize = 13.sp,
-                        color = Color.LightGray
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     )
                     exportedPathsList.forEach { path ->
                         Surface(
-                            color = Color(0xFF161B22),
+                            color = MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(6.dp),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
                         ) {
                             Row(
@@ -93,28 +94,26 @@ fun LiveLogConsoleOverlay() {
                             ) {
                                 Icon(Icons.Default.Folder, contentDescription = null, tint = Color(0xFF28A745), modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(path, fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color.White)
+                                Text(path, fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                     }
                     Text(
-                        "💡 Tip: Open your File Manager app (e.g., Files by Google or Samsung My Files) and go to Internal Storage > Download > fastgit log or Documents > fastgit log",
+                        text = "💡 Tip: Open your File Manager app (e.g., Files by Google or Samsung My Files) and go to Internal Storage > Download > fastgit log or Documents > fastgit log",
                         fontSize = 11.sp,
-                        color = GhTextSecondaryDark
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             },
             confirmButton = {
                 Button(
                     onClick = { showExportDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("OK", color = Color.White)
+                    Text("OK", color = MaterialTheme.colorScheme.surface)
                 }
             },
-            containerColor = Color(0xFF0D1117),
-            titleContentColor = Color.White,
-            textContentColor = Color.LightGray
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -129,11 +128,11 @@ fun LiveLogConsoleOverlay() {
             Surface(
                 onClick = { AppLogger.expandOverlay() },
                 shape = CircleShape,
-                color = if (errorCount > 0) Color(0xFF9E1515) else Color(0xFF1F6FEB),
+                color = if (errorCount > 0) Color(0xFFD73A49) else MaterialTheme.colorScheme.primary,
                 shadowElevation = 8.dp,
                 modifier = Modifier
                     .size(56.dp)
-                    .border(2.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -195,7 +194,7 @@ fun LiveLogConsoleOverlay() {
                 Column(modifier = Modifier.fillMaxSize()) {
                     // Header Bar
                     Surface(
-                        color = Color(0xFF161B22),
+                        color = MaterialTheme.colorScheme.surface,
                         tonalElevation = 4.dp
                     ) {
                         Row(
@@ -213,7 +212,7 @@ fun LiveLogConsoleOverlay() {
                                 Icon(
                                     imageVector = Icons.Default.Terminal,
                                     contentDescription = null,
-                                    tint = GhAccentBlue,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Column {
@@ -221,12 +220,12 @@ fun LiveLogConsoleOverlay() {
                                         text = "Live Process & Error Console",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = "${logs.size} total logs • $errorCount errors • $successCount successes",
                                         fontSize = 11.sp,
-                                        color = GhTextSecondaryDark
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                     )
                                 }
                             }
@@ -240,7 +239,7 @@ fun LiveLogConsoleOverlay() {
                                     Icon(
                                         imageVector = Icons.Default.Remove,
                                         contentDescription = "Minimize",
-                                        tint = Color.White
+                                        tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
@@ -263,7 +262,7 @@ fun LiveLogConsoleOverlay() {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF0D1117))
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -274,8 +273,10 @@ fun LiveLogConsoleOverlay() {
                                 onClick = { filterType = "ALL" },
                                 label = { Text("All (${logs.size})", fontSize = 11.sp) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = GhAccentBlue,
-                                    selectedLabelColor = Color.White
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.surface,
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    labelColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             FilterChip(
@@ -284,7 +285,9 @@ fun LiveLogConsoleOverlay() {
                                 label = { Text("Errors ($errorCount)", fontSize = 11.sp) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = Color(0xFFD73A49),
-                                    selectedLabelColor = Color.White
+                                    selectedLabelColor = Color.White,
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    labelColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             FilterChip(
@@ -293,7 +296,9 @@ fun LiveLogConsoleOverlay() {
                                 label = { Text("Success ($successCount)", fontSize = 11.sp) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = Color(0xFF28A745),
-                                    selectedLabelColor = Color.White
+                                    selectedLabelColor = Color.White,
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    labelColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -331,11 +336,11 @@ fun LiveLogConsoleOverlay() {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
                                     contentDescription = "Copy",
-                                    tint = GhAccentBlue,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Copy", fontSize = 12.sp, color = GhAccentBlue)
+                                Text("Copy", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                             }
 
                             // Clear Logs Button
@@ -346,13 +351,13 @@ fun LiveLogConsoleOverlay() {
                                 Icon(
                                     imageVector = Icons.Default.DeleteOutline,
                                     contentDescription = "Clear",
-                                    tint = GhTextSecondaryDark
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFF21262D), thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), thickness = 1.dp)
 
                     // Logs List
                     if (filteredLogs.isEmpty()) {
@@ -406,9 +411,9 @@ fun LogItemRow(item: LogEntry) {
     }
 
     val textColor = when {
-        item.isError -> Color(0xFFFF7B72) // Bright red
-        item.isSuccess -> Color(0xFF7EE787) // Bright green
-        else -> Color(0xFFC9D1D9) // White-gray
+        item.isError -> Color(0xFFFF7B72)
+        item.isSuccess -> Color(0xFF7EE787)
+        else -> Color(0xFFC9D1D9)
     }
 
     val tagColor = when {
@@ -432,7 +437,6 @@ fun LogItemRow(item: LogEntry) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // Tag Badge
                     Text(
                         text = "[${item.tag}]",
                         fontSize = 10.sp,
