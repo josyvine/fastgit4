@@ -48,13 +48,11 @@ fun HomeScreen(
     onDownloadZipRepo: ((Repository) -> Unit)? = null
 ) {
     val context = LocalContext.current
-    // Retrieve the shared RepositoryViewModel scoped to the current ViewModelStoreOwner
     val repositoryViewModel: RepositoryViewModel = viewModel()
 
     val repositoryStatusMessage by repositoryViewModel.statusMessage.collectAsState()
     var repoToDelete by remember { mutableStateOf<Repository?>(null) }
 
-    // Fallback callbacks to the local ViewModel if parameters are not provided
     val finalDeleteRepo = onDeleteRepo ?: { repo ->
         repositoryViewModel.deleteRepository(repo.owner?.login ?: "developer", repo.name) {
             homeViewModel.loadHomeData()
@@ -92,7 +90,7 @@ fun HomeScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(GhBgDark)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -103,12 +101,12 @@ fun HomeScreen(
                             text = "FastGit Mobile Workspace",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Manage GitHub repositories without terminal Git commands",
                             fontSize = 13.sp,
-                            color = GhTextSecondaryDark
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -119,7 +117,7 @@ fun HomeScreen(
                         text = "Quick Actions",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
@@ -140,7 +138,7 @@ fun HomeScreen(
                             title = "Import Repo",
                             subtitle = "From GitHub URL",
                             icon = Icons.Default.CloudDownload,
-                            color = GhAccentBlue,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f),
                             onClick = onImportRepoClick
                         )
@@ -158,7 +156,7 @@ fun HomeScreen(
                             text = "Recent Repositories",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -166,7 +164,7 @@ fun HomeScreen(
                 if (isLoading && !isRefreshing) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = GhAccentBlue)
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 } else {
@@ -174,7 +172,7 @@ fun HomeScreen(
                         RepoCardItem(
                             repo = repo,
                             onClick = { onSelectRepo(repo) },
-                            onDeleteClick = { repoToDelete = repo }, // Show safety dialog warning
+                            onDeleteClick = { repoToDelete = repo },
                             onDownloadZipClick = { finalDownloadZipRepo(repo) }
                         )
                     }
@@ -187,7 +185,7 @@ fun HomeScreen(
                         text = "Recent Commits",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -206,7 +204,7 @@ fun HomeScreen(
                 text = {
                     Text(
                         text = "Are you sure you want to delete '${target.name}'? This action is permanent and cannot be undone.",
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 confirmButton = {
@@ -223,14 +221,14 @@ fun HomeScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { repoToDelete = null }) {
-                        Text("Cancel", color = Color.White)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                containerColor = GhSurfaceDark
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
 
-        // Home Tab Operations Feedback Snackbar (Collection)
+        // Home Tab Operations Feedback Snackbar
         repositoryStatusMessage?.let { msg ->
             Snackbar(
                 modifier = Modifier
@@ -238,11 +236,11 @@ fun HomeScreen(
                     .padding(16.dp),
                 action = {
                     TextButton(onClick = { repositoryViewModel.clearStatus() }) {
-                        Text("OK", color = GhAccentBlue)
+                        Text("OK", color = MaterialTheme.colorScheme.primary)
                     }
                 },
-                containerColor = GhSurfaceDark,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ) {
                 Text(msg)
             }
@@ -262,7 +260,7 @@ fun QuickActionCard(
     Card(
         modifier = modifier.clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = ButtonDefaults.outlinedButtonBorder(enabled = true)
     ) {
         Column(
@@ -279,8 +277,8 @@ fun QuickActionCard(
                 }
             }
 
-            Text(title, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 15.sp)
-            Text(subtitle, color = GhTextSecondaryDark, fontSize = 12.sp)
+            Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
         }
     }
 }
@@ -305,7 +303,7 @@ fun RepoCardItem(
                     onLongClick = { showMenu = true }
                 ),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = ButtonDefaults.outlinedButtonBorder(enabled = true)
         ) {
             Row(
@@ -315,7 +313,7 @@ fun RepoCardItem(
                 Icon(
                     imageVector = if (repo.private) Icons.Default.Lock else Icons.Default.Folder,
                     contentDescription = null,
-                    tint = if (repo.private) GhWarningYellow else GhAccentBlue,
+                    tint = if (repo.private) GhWarningYellow else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(28.dp)
                 )
 
@@ -325,7 +323,7 @@ fun RepoCardItem(
                     Text(
                         text = repo.name,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 16.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -334,7 +332,7 @@ fun RepoCardItem(
                     repo.description?.let { desc ->
                         Text(
                             text = desc,
-                            color = GhTextSecondaryDark,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontSize = 13.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -356,35 +354,35 @@ fun RepoCardItem(
                                         .background(GhPrimaryViolet)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(lang, fontSize = 11.sp, color = GhTextSecondaryDark)
+                                Text(lang, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                             }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Star, contentDescription = null, tint = GhWarningYellow, modifier = Modifier.size(12.dp))
                             Spacer(modifier = Modifier.width(2.dp))
-                            Text("${repo.stargazersCount}", fontSize = 11.sp, color = GhTextSecondaryDark)
+                            Text("${repo.stargazersCount}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CallSplit, contentDescription = null, tint = GhTextSecondaryDark, modifier = Modifier.size(12.dp))
+                            Icon(Icons.Default.CallSplit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
                             Spacer(modifier = Modifier.width(2.dp))
-                            Text("${repo.forksCount}", fontSize = 11.sp, color = GhTextSecondaryDark)
+                            Text("${repo.forksCount}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
                     }
                 }
 
-                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = GhTextSecondaryDark)
+                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
             }
         }
 
         DropdownMenu(
             expanded = showMenu,
             onDismissRequest = { showMenu = false },
-            modifier = Modifier.background(GhSurfaceDark)
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             DropdownMenuItem(
-                text = { Text("Copy Repo URL", color = Color.White) },
+                text = { Text("Copy Repo URL", color = MaterialTheme.colorScheme.onSurface) },
                 onClick = {
                     showMenu = false
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -392,11 +390,11 @@ fun RepoCardItem(
                     clipboard.setPrimaryClip(clip)
                     Toast.makeText(context, "Repository URL copied to clipboard!", Toast.LENGTH_SHORT).show()
                 },
-                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = GhAccentBlue) }
+                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
             )
             if (onDownloadZipClick != null) {
                 DropdownMenuItem(
-                    text = { Text("Download Repository (ZIP)", color = Color.White) },
+                    text = { Text("Download Repository (ZIP)", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showMenu = false
                         onDownloadZipClick()
@@ -423,7 +421,7 @@ fun CommitCardItem(commit: Commit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = ButtonDefaults.outlinedButtonBorder(enabled = true)
     ) {
         Row(
@@ -436,7 +434,7 @@ fun CommitCardItem(commit: Commit) {
                 Text(
                     text = commit.commit?.message ?: "Update repository content",
                     fontWeight = FontWeight.Medium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -444,7 +442,7 @@ fun CommitCardItem(commit: Commit) {
                 Text(
                     text = "${commit.commit?.author?.name ?: "FastGit"} • ${commit.sha.take(7)}",
                     fontSize = 11.sp,
-                    color = GhTextSecondaryDark
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
         }
