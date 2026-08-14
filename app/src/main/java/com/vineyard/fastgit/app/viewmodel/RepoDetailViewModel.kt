@@ -119,7 +119,7 @@ class RepoDetailViewModel(
     private val _artifactDownloadStep = MutableStateFlow("")
     val artifactDownloadStep: StateFlow<String> = _artifactDownloadStep
 
-    private val _artifactDownloadProgress = MutableStateFlow<Float?>(null)
+    private val _artifactDownloadProgress = MutableStateFlow<Float?>(0f)
     val artifactDownloadProgress: StateFlow<Float?> = _artifactDownloadProgress
 
     // Status / Messages
@@ -1637,7 +1637,7 @@ class RepoDetailViewModel(
             } finally {
                 withContext(Dispatchers.Main) {
                     _isDownloadingArtifact.value = false
-                    _artifactDownloadProgress.value = null
+                    _artifactDownloadProgress.value = 0f
                 }
             }
         }
