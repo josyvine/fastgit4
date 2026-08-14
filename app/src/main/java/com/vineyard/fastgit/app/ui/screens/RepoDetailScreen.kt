@@ -62,10 +62,15 @@ fun RepoDetailScreen(
     val uploadStep by repoDetailViewModel.uploadStep.collectAsState()
     val uploadProgress by repoDetailViewModel.uploadProgress.collectAsState()
 
-    // Smart Refactoring Progress State Collectors (New)
+    // Smart Refactoring Progress State Collectors
     val isRefactoring by repoDetailViewModel.isRefactoring.collectAsState()
     val refactorStep by repoDetailViewModel.refactorStep.collectAsState()
     val refactorProgress by repoDetailViewModel.refactorProgress.collectAsState()
+
+    // Artifact Download Progress State Collectors
+    val isDownloadingArtifact by repoDetailViewModel.isDownloadingArtifact.collectAsState()
+    val artifactDownloadStep by repoDetailViewModel.artifactDownloadStep.collectAsState()
+    val artifactDownloadProgress by repoDetailViewModel.artifactDownloadProgress.collectAsState()
 
     val activeFile by repoDetailViewModel.activeFile.collectAsState()
     val fileContent by repoDetailViewModel.fileContent.collectAsState()
@@ -330,7 +335,7 @@ fun RepoDetailScreen(
                         }
                     }
 
-                    // Monospace Log Console Area (Filling maximum canvas real estate)
+                    // Monospace Log Console Area
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -394,6 +399,83 @@ fun RepoDetailScreen(
         }
     }
 
+    // Artifact Download Progress Dialog
+    if (isDownloadingArtifact) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = GhSuccessGreen,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Downloading Artifacts",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text(
+                        text = "Downloading and extracting build APK artifacts to Downloads/FastGit...",
+                        fontSize = 13.sp,
+                        color = GhTextSecondaryDark
+                    )
+
+                    if (artifactDownloadProgress != null) {
+                        LinearProgressIndicator(
+                            progress = { artifactDownloadProgress!! },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = GhSuccessGreen,
+                            trackColor = GhCardBorderDark
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = GhSuccessGreen,
+                            trackColor = GhCardBorderDark
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = artifactDownloadStep,
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (artifactDownloadProgress != null) {
+                            Text(
+                                text = "${((artifactDownloadProgress ?: 0f) * 100).toInt()}%",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = GhAccentBlue
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            containerColor = GhSurfaceDark,
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+
     // ZIP Upload Progress Dialog
     if (isUploadingZip) {
         AlertDialog(
@@ -447,7 +529,7 @@ fun RepoDetailScreen(
         )
     }
 
-    // Smart Refactoring Progress Dialog (New)
+    // Smart Refactoring Progress Dialog
     if (isRefactoring) {
         AlertDialog(
             onDismissRequest = { },
@@ -607,7 +689,6 @@ fun ExplorerTabContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                // Safely offset the maximized explorer content under the translucent system status bar
                 .then(if (isMaximized) Modifier.statusBarsPadding() else Modifier)
                 .padding(12.dp)
         ) {
@@ -701,7 +782,6 @@ fun ExplorerTabContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // View Mode selection controls
                 Row(
                     modifier = Modifier
                         .background(GhSurfaceDark, RoundedCornerShape(8.dp))
@@ -758,7 +838,7 @@ fun ExplorerTabContent(
                     }
                 }
 
-                // High-performance search explorer logic layout replacing static label
+                // Search explorer logic layout
                 var isLocalSearchActive by remember { mutableStateOf(false) }
                 var localSearchQuery by remember { mutableStateOf("") }
 
@@ -846,7 +926,7 @@ fun ExplorerTabContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Breadcrumb Navigation Bar (Including the Maximize/Minimize Toggle button and collapsible Plus button menu)
+            // Breadcrumb Navigation Bar
             BreadcrumbBar(
                 currentPath = currentPath,
                 onNavigatePath = { targetPath -> repoDetailViewModel.navigateToDirectory(targetPath) },
@@ -875,12 +955,12 @@ fun ExplorerTabContent(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            // Directory Explorer Tree List (Optimized with LazyColumn Recycling)
+            // Directory Explorer Tree List
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Parent Folder Row (..) when inside a subfolder
+                // Parent Folder Row (..)
                 if (currentPath.isNotEmpty()) {
                     item(key = "parent_folder_nav_up") {
                         ParentFolderNodeRow(
@@ -970,10 +1050,8 @@ fun ExplorerTabContent(
                         onItemClick = { target ->
                             if (target.type == "dir") {
                                 if (explorerMode == 1) {
-                                    // Folder View mode: Navigate directly into subfolder
                                     repoDetailViewModel.navigateToDirectory(target.path)
                                 } else {
-                                    // Tree View mode: Expand/collapse inline
                                     val isExp = expandedPaths.contains(target.path)
                                     if (!isExp && target.children.isEmpty()) {
                                         repoDetailViewModel.fetchSubfolderContents(target.path)
@@ -1000,7 +1078,6 @@ fun ExplorerTabContent(
                         onRenameItem = { fileItem -> renameTargetItem = fileItem },
                         onDeleteItem = { fileItem -> deleteTargetItem = fileItem },
                         onDownloadFolderZip = { folder ->
-                            // Directly invoke VM to download and save folder ZIP natively
                             repoDetailViewModel.downloadFolderAsZip(folder, context)
                         }
                     )
@@ -1148,7 +1225,7 @@ fun ExplorerTabContent(
         )
     }
 
-    // Global Search & Replace Dialog (Refactoring Tool) (Updated with Smart Package Refactor Option)
+    // Global Search & Replace Dialog
     if (showSearchReplaceDialog) {
         var searchQueryInput by remember { mutableStateOf("") }
         var replaceQueryInput by remember { mutableStateOf("") }
@@ -1190,7 +1267,6 @@ fun ExplorerTabContent(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Toggle option to trigger directory movements alongside text renaming
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -1306,7 +1382,6 @@ fun TreeItemNodeRow(
                     modifier = Modifier.weight(1f)
                 )
                 if (item.type == "dir") {
-                    // Inline Collapsible Plus Button for Directories
                     Box {
                         IconButton(
                             onClick = { showPlusMenu = true },
@@ -1636,7 +1711,6 @@ fun BreadcrumbBar(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Collapsible Plus Icon beside folder view for Create File vs Upload File
                 Box {
                     IconButton(
                         onClick = { showPlusMenu = true },
@@ -1688,7 +1762,6 @@ fun BreadcrumbBar(
 
                 Spacer(modifier = Modifier.width(4.dp))
 
-                // Maximize / Minimize Icon Trigger on the extreme right
                 IconButton(
                     onClick = onToggleMaximize,
                     modifier = Modifier.size(28.dp)
@@ -1811,6 +1884,45 @@ fun CommitsTabContent(repoDetailViewModel: RepoDetailViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(commits) { commit ->
             CommitCardItem(commit = commit)
+        }
+    }
+}
+
+@Composable
+fun CommitCardItem(commit: Commit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+        border = ButtonDefaults.outlinedButtonBorder(enabled = true)
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Commit,
+                contentDescription = null,
+                tint = GhAccentBlue,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = commit.commit?.message ?: "Commit ${commit.sha.take(7)}",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "${commit.commit?.author?.name ?: commit.author?.login ?: "author"} • ${commit.sha.take(7)}",
+                    fontSize = 11.sp,
+                    color = GhTextSecondaryDark
+                )
+            }
         }
     }
 }
@@ -1992,6 +2104,14 @@ fun ActionsTabContent(
                 var runMenuExpanded by remember { mutableStateOf(false) }
                 val isRunning = run.status == "in_progress" || run.status == "queued"
 
+                // Dynamic headline resolution matching the official GitHub app
+                val runTitle = run.displayTitle?.ifBlank { null }
+                    ?: run.headCommit?.message?.lines()?.firstOrNull()?.ifBlank { null }
+                    ?: run.name
+                    ?: "Workflow Run #${run.runNumber}"
+
+                val runWorkflowName = run.name?.ifBlank { null } ?: "Build APK"
+
                 Box {
                     Card(
                         modifier = Modifier
@@ -2021,8 +2141,22 @@ fun ActionsTabContent(
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(run.name ?: "Workflow Run #${run.runNumber}", fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 13.sp)
-                                Text("branch: ${run.headBranch} • status: ${run.status}", fontSize = 11.sp, color = GhTextSecondaryDark)
+                                Text(
+                                    text = runTitle,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "$runWorkflowName #${run.runNumber} • branch: ${run.headBranch ?: "main"} • status: ${run.status}",
+                                    fontSize = 11.sp,
+                                    color = GhTextSecondaryDark,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                         }
                     }
@@ -2099,3 +2233,4 @@ fun RepoSettingsTabContent(repoDetailViewModel: RepoDetailViewModel, onBack: () 
         }
     }
 }
+
