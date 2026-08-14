@@ -85,12 +85,15 @@ fun MainScreen(
             Scaffold(
                 bottomBar = {
                     NavigationBar(
-                        containerColor = GhSurfaceDark,
-                        contentColor = GhAccentBlue,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary,
                         tonalElevation = 8.dp
                     ) {
                         navItems.forEachIndexed { index, tab ->
                             val isSelected = pagerState.currentPage == index
+                            val activeColor = MaterialTheme.colorScheme.primary
+                            val inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+
                             NavigationBarItem(
                                 selected = isSelected,
                                 onClick = {
@@ -102,24 +105,28 @@ fun MainScreen(
                                     Icon(
                                         imageVector = if (isSelected) tab.selectedIcon else tab.icon,
                                         contentDescription = tab.title,
-                                        tint = if (isSelected) GhAccentBlue else GhTextSecondaryDark
+                                        tint = if (isSelected) activeColor else inactiveColor
                                     )
                                 },
                                 label = {
                                     Text(
                                         text = tab.title,
                                         fontSize = 11.sp,
-                                        color = if (isSelected) GhAccentBlue else GhTextSecondaryDark
+                                        color = if (isSelected) activeColor else inactiveColor
                                     )
                                 },
                                 colors = NavigationBarItemDefaults.colors(
-                                    indicatorColor = GhAccentBlue.copy(alpha = 0.15f)
+                                    indicatorColor = activeColor.copy(alpha = 0.15f),
+                                    selectedIconColor = activeColor,
+                                    selectedTextColor = activeColor,
+                                    unselectedIconColor = inactiveColor,
+                                    unselectedTextColor = inactiveColor
                                 )
                             )
                         }
                     }
                 },
-                containerColor = GhBgDark
+                containerColor = MaterialTheme.colorScheme.background
             ) { innerPadding ->
                 HorizontalPager(
                     state = pagerState,
