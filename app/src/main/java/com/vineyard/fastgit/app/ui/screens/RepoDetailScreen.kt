@@ -399,7 +399,7 @@ fun RepoDetailScreen(
         }
     }
 
-    // Artifact Download Progress Dialog
+    // Artifact Download Progress Dialog (Fixed against NPE during redraw)
     if (isDownloadingArtifact) {
         AlertDialog(
             onDismissRequest = { },
@@ -427,9 +427,10 @@ fun RepoDetailScreen(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
-                    if (artifactDownloadProgress != null) {
+                    val currentProgress = artifactDownloadProgress
+                    if (currentProgress != null) {
                         LinearProgressIndicator(
-                            progress = { artifactDownloadProgress!! },
+                            progress = { currentProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp)
@@ -459,9 +460,9 @@ fun RepoDetailScreen(
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
-                        if (artifactDownloadProgress != null) {
+                        if (currentProgress != null) {
                             Text(
-                                text = "${((artifactDownloadProgress ?: 0f) * 100).toInt()}%",
+                                text = "${(currentProgress * 100).toInt()}%",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -2174,4 +2175,3 @@ fun RepoSettingsTabContent(repoDetailViewModel: RepoDetailViewModel, onBack: () 
         }
     }
 }
-
