@@ -66,7 +66,7 @@ fun RepositoriesScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(GhBgDark)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -83,15 +83,15 @@ fun RepositoriesScreen(
                     text = "Repositories",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
                         onClick = { showImportDialog = true },
-                        colors = IconButtonDefaults.iconButtonColors(containerColor = GhSurfaceDark)
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        Icon(Icons.Default.CloudDownload, contentDescription = "Import Repo", tint = GhAccentBlue)
+                        Icon(Icons.Default.CloudDownload, contentDescription = "Import Repo", tint = MaterialTheme.colorScheme.primary)
                     }
 
                     FloatingActionButton(
@@ -111,16 +111,16 @@ fun RepositoriesScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { repositoryViewModel.onSearchQueryChange(it) },
-                placeholder = { Text("Search repositories...", color = GhTextSecondaryDark) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = GhTextSecondaryDark) },
+                placeholder = { Text("Search repositories...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = GhAccentBlue,
-                    unfocusedBorderColor = GhCardBorderDark,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = GhSurfaceDark,
-                    unfocusedContainerColor = GhSurfaceDark
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -139,10 +139,10 @@ fun RepositoriesScreen(
                         onClick = { repositoryViewModel.onFilterSelect(filter) },
                         label = { Text(filter) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = GhAccentBlue,
-                            selectedLabelColor = Color.Black,
-                            containerColor = GhSurfaceDark,
-                            labelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.surface,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -169,16 +169,16 @@ fun RepositoriesScreen(
                 ) {
                     if (isLoading && !isRefreshing) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = GhAccentBlue)
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     } else if (filteredRepos.isEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .verticalScroll(rememberScrollState()), // Enables pull-to-refresh on empty lists
+                                .verticalScroll(rememberScrollState()),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("No matching repositories found.", color = GhTextSecondaryDark)
+                            Text("No matching repositories found.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
                     } else {
                         LazyColumn(
@@ -214,11 +214,11 @@ fun RepositoriesScreen(
                     .padding(16.dp),
                 action = {
                     TextButton(onClick = { repositoryViewModel.clearStatus() }) {
-                        Text("OK", color = GhAccentBlue)
+                        Text("OK", color = MaterialTheme.colorScheme.primary)
                     }
                 },
-                containerColor = GhSurfaceDark,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ) {
                 Text(msg)
             }
@@ -234,7 +234,7 @@ fun RepositoriesScreen(
             text = {
                 Text(
                     text = "Are you sure you want to delete '${target.fullName}'? This action is permanent and cannot be undone.",
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             confirmButton = {
@@ -250,10 +250,10 @@ fun RepositoriesScreen(
             },
             dismissButton = {
                 TextButton(onClick = { repoToDelete = null }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -296,7 +296,7 @@ fun CreateRepoDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Repository", color = Color.White, fontWeight = FontWeight.Bold) },
+        title = { Text("Create Repository", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -305,8 +305,8 @@ fun CreateRepoDialog(
                     label = { Text("Repository Name *") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -316,8 +316,8 @@ fun CreateRepoDialog(
                     onValueChange = { desc = it },
                     label = { Text("Description (optional)") },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -327,11 +327,11 @@ fun CreateRepoDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Private Repository", color = Color.White)
+                    Text("Private Repository", color = MaterialTheme.colorScheme.onSurface)
                     Switch(
                         checked = isPrivate,
                         onCheckedChange = { isPrivate = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = GhAccentBlue)
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
                     )
                 }
 
@@ -340,11 +340,11 @@ fun CreateRepoDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Initialize with README", color = Color.White)
+                    Text("Initialize with README", color = MaterialTheme.colorScheme.onSurface)
                     Checkbox(
                         checked = initReadme,
                         onCheckedChange = { initReadme = it },
-                        colors = CheckboxDefaults.colors(checkedColor = GhAccentBlue)
+                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                     )
                 }
             }
@@ -355,15 +355,15 @@ fun CreateRepoDialog(
                 enabled = name.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = GhSuccessGreen)
             ) {
-                Text("Create")
+                Text("Create", color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = GhTextSecondaryDark)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             }
         },
-        containerColor = GhSurfaceDark
+        containerColor = MaterialTheme.colorScheme.surface
     )
 }
 
@@ -378,20 +378,18 @@ fun ImportRepoDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Import Repository", color = Color.White, fontWeight = FontWeight.Bold) },
+        title = { Text("Import Repository", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = "Paste a GitHub repository URL and choose a new repository name for your imported copy.",
                     fontSize = 13.sp,
-                    color = GhTextSecondaryDark
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
 
                 OutlinedTextField(
                     value = url,
                     onValueChange = { inputUrl ->
-                        url = inputUrl
-                        // Auto-extract repository name from URL if newRepoName is empty or was auto-derived
                         val clean = inputUrl.trim().removeSuffix("/").removeSuffix(".git")
                         val extracted = clean.substringAfterLast("/")
                         if (extracted.isNotBlank() && !extracted.contains(":") && !extracted.contains("?")) {
@@ -399,12 +397,13 @@ fun ImportRepoDialog(
                                 newRepoName = extracted
                             }
                         }
+                        url = inputUrl
                     },
                     label = { Text("GitHub Source URL *") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -415,8 +414,8 @@ fun ImportRepoDialog(
                     label = { Text("New Repository Name *") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -426,11 +425,11 @@ fun ImportRepoDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Private Repository", color = Color.White)
+                    Text("Private Repository", color = MaterialTheme.colorScheme.onSurface)
                     Switch(
                         checked = isPrivate,
                         onCheckedChange = { isPrivate = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = GhAccentBlue)
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
                     )
                 }
             }
@@ -439,16 +438,16 @@ fun ImportRepoDialog(
             Button(
                 onClick = { onImport(url, newRepoName, isPrivate) },
                 enabled = url.isNotBlank() && newRepoName.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Import")
+                Text("Import", color = MaterialTheme.colorScheme.surface)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = GhTextSecondaryDark)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             }
         },
-        containerColor = GhSurfaceDark
+        containerColor = MaterialTheme.colorScheme.surface
     )
 }
