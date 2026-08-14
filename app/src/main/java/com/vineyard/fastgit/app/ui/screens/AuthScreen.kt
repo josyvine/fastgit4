@@ -59,8 +59,8 @@ fun AuthScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF0D1117),
-                        Color(0xFF161B22)
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.surface
                     )
                 )
             )
@@ -77,7 +77,7 @@ fun AuthScreen(
                 modifier = Modifier
                     .size(96.dp)
                     .clip(RoundedCornerShape(24.dp)),
-                color = GhPrimaryViolet.copy(alpha = 0.2f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                 border = ButtonDefaults.outlinedButtonBorder(enabled = true)
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -85,7 +85,7 @@ fun AuthScreen(
                         imageVector = Icons.Default.Code,
                         contentDescription = "FastGit Logo",
                         modifier = Modifier.size(54.dp),
-                        tint = GhAccentBlue
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -96,20 +96,21 @@ fun AuthScreen(
                 text = "FastGit Workspace",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
                 text = "Full Android GitHub Client & File Manager",
                 fontSize = 14.sp,
-                color = Color(0xFF8B949E),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
             )
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF21262D)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -119,7 +120,7 @@ fun AuthScreen(
                     Text(
                         text = "Sign in with GitHub",
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         modifier = Modifier.align(Alignment.Start)
                     )
@@ -127,7 +128,7 @@ fun AuthScreen(
                     Text(
                         text = "Authorize via official GitHub OAuth2 portal",
                         fontSize = 13.sp,
-                        color = Color(0xFF8B949E),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier
                             .align(Alignment.Start)
                             .padding(top = 4.dp, bottom = 20.dp)
@@ -181,7 +182,7 @@ fun AuthScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Option 3: Sign in with GitHub (Device Flow)
+                    // Option: Sign in with GitHub (Device Flow)
                     OutlinedButton(
                         onClick = {
                             authViewModel.clearError()
@@ -190,7 +191,7 @@ fun AuthScreen(
                         enabled = !isLoading && !isDeviceFlowLoading,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = GhAccentBlue
+                            contentColor = MaterialTheme.colorScheme.primary
                         ),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier
@@ -200,7 +201,7 @@ fun AuthScreen(
                         if (isDeviceFlowLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(22.dp),
-                                color = GhAccentBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 strokeWidth = 2.dp
                             )
                         } else {
@@ -211,7 +212,7 @@ fun AuthScreen(
                                 Icon(
                                     imageVector = Icons.Default.VpnKey,
                                     contentDescription = null,
-                                    tint = GhAccentBlue,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -219,7 +220,7 @@ fun AuthScreen(
                                     text = "Sign in with GitHub (Device Flow)",
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -236,7 +237,7 @@ fun AuthScreen(
                         ) {
                             Text(
                                 text = "Enter OAuth Code",
-                                color = GhAccentBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 12.sp
                             )
                         }
@@ -250,7 +251,7 @@ fun AuthScreen(
                         ) {
                             Text(
                                 text = "Configure OAuth App ID",
-                                color = Color(0xFF8B949E),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 fontSize = 12.sp
                             )
                         }
@@ -269,7 +270,11 @@ fun AuthScreen(
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = null, tint = GhPrimaryViolet)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Explore in Demo / Guest Mode", color = Color.White, fontWeight = FontWeight.Medium)
+                        Text(
+                            text = "Explore in Demo / Guest Mode",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
@@ -277,13 +282,13 @@ fun AuthScreen(
             errorMessage?.let { error ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Surface(
-                    color = Color(0xFF3D1314),
+                    color = MaterialTheme.colorScheme.errorContainer,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = error,
-                        color = Color(0xFFFF7B72),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(12.dp),
                         textAlign = TextAlign.Center
@@ -296,12 +301,12 @@ fun AuthScreen(
     if (showManualCodeDialog) {
         AlertDialog(
             onDismissRequest = { showManualCodeDialog = false },
-            title = { Text("Manual OAuth Authorization Code", color = Color.White) },
+            title = { Text("Manual OAuth Authorization Code", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column {
                     Text(
                         text = "If browser redirect did not auto-return to app, copy the 'code' parameter from the URL bar (fastgit://oauth-callback?code=...) and paste it below:",
-                        color = Color(0xFFC9D1D9),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         fontSize = 13.sp
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -311,12 +316,12 @@ fun AuthScreen(
                         label = { Text("OAuth Code") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GhAccentBlue,
-                            unfocusedBorderColor = Color(0xFF30363D),
-                            focusedLabelColor = GhAccentBlue,
-                            unfocusedLabelColor = Color(0xFF8B949E),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -331,17 +336,17 @@ fun AuthScreen(
                             authViewModel.handleOAuthCode(code)
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Submit Code", color = Color.Black)
+                    Text("Submit Code", color = MaterialTheme.colorScheme.surface)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showManualCodeDialog = false }) {
-                    Text("Cancel", color = Color(0xFF8B949E))
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 }
             },
-            containerColor = Color(0xFF21262D)
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -353,18 +358,23 @@ fun AuthScreen(
                     Icon(
                         imageVector = Icons.Default.VpnKey,
                         contentDescription = null,
-                        tint = GhAccentBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("GitHub Device Flow", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "GitHub Device Flow",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Enter this user code on GitHub to authorize FastGit Workspace:",
-                        color = Color(0xFFC9D1D9),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center
                     )
@@ -373,14 +383,14 @@ fun AuthScreen(
 
                     // User Code Box
                     Surface(
-                        color = Color(0xFF161B22),
+                        color = MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(12.dp),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = deviceState.userCode ?: "----",
-                            color = GhAccentBlue,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
                             letterSpacing = 2.sp,
@@ -394,7 +404,7 @@ fun AuthScreen(
                     // Verification URL
                     Text(
                         text = "Verification URL:\n${deviceState.verificationUri ?: "https://github.com/login/device"}",
-                        color = Color(0xFF8B949E),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
                     )
@@ -432,13 +442,13 @@ fun AuthScreen(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            color = GhAccentBlue,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Waiting for authorization on GitHub...",
-                            color = Color(0xFF8B949E),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontSize = 12.sp
                         )
                     }
@@ -447,22 +457,22 @@ fun AuthScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { authViewModel.cancelDeviceFlow() }) {
-                    Text("Cancel", color = Color(0xFFFF7B72))
+                    Text("Cancel", color = MaterialTheme.colorScheme.error)
                 }
             },
-            containerColor = Color(0xFF21262D)
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
     if (showOauthConfigDialog) {
         AlertDialog(
             onDismissRequest = { showOauthConfigDialog = false },
-            title = { Text("Configure GitHub OAuth App", color = Color.White) },
+            title = { Text("Configure GitHub OAuth App", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column {
                     Text(
                         text = "To use Device Flow or official OAuth with your own GitHub registered App, enter your GitHub Client ID and Client Secret (from github.com/settings/developers):",
-                        color = Color(0xFFC9D1D9),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         fontSize = 13.sp
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -472,12 +482,12 @@ fun AuthScreen(
                         label = { Text("Client ID") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GhAccentBlue,
-                            unfocusedBorderColor = Color(0xFF30363D),
-                            focusedLabelColor = GhAccentBlue,
-                            unfocusedLabelColor = Color(0xFF8B949E),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -488,12 +498,12 @@ fun AuthScreen(
                         label = { Text("Client Secret") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GhAccentBlue,
-                            unfocusedBorderColor = Color(0xFF30363D),
-                            focusedLabelColor = GhAccentBlue,
-                            unfocusedLabelColor = Color(0xFF8B949E),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -509,17 +519,17 @@ fun AuthScreen(
                             showOauthConfigDialog = false
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Save Credentials", color = Color.Black)
+                    Text("Save Credentials", color = MaterialTheme.colorScheme.surface)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showOauthConfigDialog = false }) {
-                    Text("Cancel", color = Color(0xFF8B949E))
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 }
             },
-            containerColor = Color(0xFF21262D)
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
