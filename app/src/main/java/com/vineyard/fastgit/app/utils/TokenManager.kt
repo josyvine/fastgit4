@@ -32,6 +32,14 @@ class TokenManager(context: Context) {
         return prefs.getBoolean(KEY_DEMO, false)
     }
 
+    fun saveThemeMode(mode: String) {
+        prefs.edit().putString(KEY_THEME_MODE, mode).apply()
+    }
+
+    fun getThemeMode(): String {
+        return prefs.getString(KEY_THEME_MODE, "System") ?: "System"
+    }
+
     fun saveOAuthCredentials(clientId: String, clientSecret: String) {
         prefs.edit()
             .putString(KEY_OAUTH_CLIENT_ID, clientId)
@@ -52,6 +60,7 @@ class TokenManager(context: Context) {
     companion object {
         private const val KEY_TOKEN = "github_access_token"
         private const val KEY_DEMO = "is_demo_mode"
+        private const val KEY_THEME_MODE = "app_theme_mode"
         private const val KEY_OAUTH_CLIENT_ID = "oauth_client_id"
         private const val KEY_OAUTH_CLIENT_SECRET = "oauth_client_secret"
 
