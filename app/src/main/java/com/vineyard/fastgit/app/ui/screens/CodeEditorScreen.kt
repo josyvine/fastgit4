@@ -69,18 +69,22 @@ fun CodeEditorScreen(
                             text = fileItem.name,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = fileItem.path,
                             fontSize = 11.sp,
-                            color = GhTextSecondaryDark
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 actions = {
@@ -90,26 +94,26 @@ fun CodeEditorScreen(
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
                                 contentDescription = "Editor Action Menu",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         DropdownMenu(
                             expanded = showMenuDropdown,
                             onDismissRequest = { showMenuDropdown = false },
-                            modifier = Modifier.background(GhSurfaceDark)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Search & Replace", color = Color.White) },
+                                text = { Text("Search & Replace", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showMenuDropdown = false
                                     showSearchReplaceDialog = true
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.FindReplace, contentDescription = null, tint = GhAccentBlue)
+                                    Icon(Icons.Default.FindReplace, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Copy", color = Color.White) },
+                                text = { Text("Copy", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showMenuDropdown = false
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -118,11 +122,11 @@ fun CodeEditorScreen(
                                     Toast.makeText(context, "Code copied to clipboard!", Toast.LENGTH_SHORT).show()
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.ContentCopy, contentDescription = null, tint = GhAccentBlue)
+                                    Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Paste", color = Color.White) },
+                                text = { Text("Paste", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showMenuDropdown = false
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -149,7 +153,7 @@ fun CodeEditorScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Cut", color = Color.White) },
+                                text = { Text("Cut", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showMenuDropdown = false
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -169,7 +173,7 @@ fun CodeEditorScreen(
                                     }
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.ContentCut, contentDescription = null, tint = GhAccentBlue)
+                                    Icon(Icons.Default.ContentCut, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             )
                             DropdownMenuItem(
@@ -201,7 +205,11 @@ fun CodeEditorScreen(
                             onDownloadClick(codeText)
                         }
                     ) {
-                        Icon(Icons.Default.Download, contentDescription = "Download File", tint = Color.White)
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Download File",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     // Undo Action
@@ -221,7 +229,7 @@ fun CodeEditorScreen(
                         Icon(
                             imageVector = Icons.Default.Undo,
                             contentDescription = "Undo",
-                            tint = if (undoStack.size > 1) Color.White else GhTextSecondaryDark
+                            tint = if (undoStack.size > 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         )
                     }
 
@@ -241,7 +249,7 @@ fun CodeEditorScreen(
                         Icon(
                             imageVector = Icons.Default.Redo,
                             contentDescription = "Redo",
-                            tint = if (redoStack.isNotEmpty()) Color.White else GhTextSecondaryDark
+                            tint = if (redoStack.isNotEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         )
                     }
 
@@ -250,10 +258,10 @@ fun CodeEditorScreen(
                         Icon(Icons.Default.Check, contentDescription = "Commit Changes", tint = GhSuccessGreen)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = GhSurfaceDark)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = Color(0xFF0D1117)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -272,7 +280,7 @@ fun CodeEditorScreen(
                 // Line Numbers Column
                 Column(
                     modifier = Modifier
-                        .background(Color(0xFF161B22))
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                     horizontalAlignment = Alignment.End
                 ) {
@@ -281,7 +289,7 @@ fun CodeEditorScreen(
                             text = "$i",
                             fontSize = 13.sp,
                             fontFamily = FontFamily.Monospace,
-                            color = GhTextSecondaryDark
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -307,9 +315,9 @@ fun CodeEditorScreen(
                     textStyle = TextStyle(
                         fontFamily = FontFamily.Monospace,
                         fontSize = 13.sp,
-                        color = Color(0xFFC9D1D9)
+                        color = MaterialTheme.colorScheme.onBackground
                     ),
-                    cursorBrush = SolidColor(GhAccentBlue),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp, horizontal = 4.dp),
@@ -331,7 +339,7 @@ fun CodeEditorScreen(
             title = {
                 Text(
                     text = "Search & Replace",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -348,12 +356,12 @@ fun CodeEditorScreen(
                         onValueChange = { searchText = it },
                         label = { Text("Search text:") },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = GhAccentBlue,
-                            unfocusedBorderColor = GhTextSecondaryDark,
-                            focusedLabelColor = GhAccentBlue,
-                            unfocusedLabelColor = GhTextSecondaryDark
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
@@ -364,12 +372,12 @@ fun CodeEditorScreen(
                         onValueChange = { replaceText = it },
                         label = { Text("Replace with:") },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                             focusedBorderColor = GhSuccessGreen,
-                            unfocusedBorderColor = GhTextSecondaryDark,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             focusedLabelColor = GhSuccessGreen,
-                            unfocusedLabelColor = GhTextSecondaryDark
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
@@ -384,15 +392,15 @@ fun CodeEditorScreen(
                             checked = isCaseSensitive,
                             onCheckedChange = { isCaseSensitive = it },
                             colors = CheckboxDefaults.colors(
-                                checkedColor = GhAccentBlue,
-                                uncheckedColor = GhTextSecondaryDark,
-                                checkmarkColor = Color.White
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                checkmarkColor = MaterialTheme.colorScheme.surface
                             )
                         )
                         Text(
                             text = "Case sensitive",
                             fontSize = 14.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -404,15 +412,15 @@ fun CodeEditorScreen(
                             checked = isRegex,
                             onCheckedChange = { isRegex = it },
                             colors = CheckboxDefaults.colors(
-                                checkedColor = GhAccentBlue,
-                                uncheckedColor = GhTextSecondaryDark,
-                                checkmarkColor = Color.White
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                checkmarkColor = MaterialTheme.colorScheme.surface
                             )
                         )
                         Text(
                             text = "Regular expression",
                             fontSize = 14.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -519,7 +527,7 @@ fun CodeEditorScreen(
                             }
                         }
                     ) {
-                        Text("REPLACE", color = GhAccentBlue, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("REPLACE", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
 
                     // SEARCH / FIND Button
@@ -545,16 +553,16 @@ fun CodeEditorScreen(
                             }
                         }
                     ) {
-                        Text("SEARCH", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("SEARCH", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSearchReplaceDialog = false }) {
-                    Text("CANCEL", color = GhTextSecondaryDark, fontSize = 12.sp)
+                    Text("CANCEL", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                 }
             },
-            containerColor = GhSurfaceDark,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(12.dp)
         )
     }
@@ -565,17 +573,17 @@ fun CodeEditorScreen(
 
         AlertDialog(
             onDismissRequest = { showCommitDialog = false },
-            title = { Text("Commit Changes", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Commit Changes", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Enter a commit message for this update:", fontSize = 13.sp, color = GhTextSecondaryDark)
+                    Text("Enter a commit message for this update:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                     OutlinedTextField(
                         value = commitMsg,
                         onValueChange = { commitMsg = it },
                         label = { Text("Commit Message") },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -585,7 +593,6 @@ fun CodeEditorScreen(
                 Button(
                     onClick = {
                         showCommitDialog = false
-                        // Ensure final typed changes are pushed to history stack before committing
                         if (codeText != lastPushedText) {
                             undoStack = undoStack + codeText
                             lastPushedText = codeText
@@ -595,15 +602,15 @@ fun CodeEditorScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GhSuccessGreen)
                 ) {
-                    Text("Commit & Save")
+                    Text("Commit & Save", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCommitDialog = false }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
