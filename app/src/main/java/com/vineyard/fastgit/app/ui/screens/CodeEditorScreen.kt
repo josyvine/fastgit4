@@ -47,6 +47,13 @@ fun CodeEditorScreen(
     var redoStack by remember(initialContent) { mutableStateOf(listOf<String>()) }
     var showCommitDialog by remember { mutableStateOf(false) }
     var showMenuDropdown by remember { mutableStateOf(false) }
+    var showSearchReplaceDialog by remember { mutableStateOf(false) }
+
+    // Search & Replace Dialog States
+    var searchText by remember { mutableStateOf("") }
+    var replaceText by remember { mutableStateOf("") }
+    var isCaseSensitive by remember { mutableStateOf(false) }
+    var isRegex by remember { mutableStateOf(false) }
 
     // Track the last state pushed to the undo stack to optimize memory allocations
     var lastPushedText by remember(initialContent) { mutableStateOf(initialContent) }
@@ -77,7 +84,16 @@ fun CodeEditorScreen(
                     }
                 },
                 actions = {
-                    // Collapsible Actions Dropdown (Copy, Paste, Cut, Delete)
+                    // Quick Search & Replace Icon Button
+                    IconButton(onClick = { showSearchReplaceDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search & Replace",
+                            tint = Color.White
+                        )
+                    }
+
+                    // Collapsible Actions Dropdown (Copy, Paste, Cut, Find & Replace, Delete)
                     Box {
                         IconButton(onClick = { showMenuDropdown = true }) {
                             Icon(
@@ -91,6 +107,16 @@ fun CodeEditorScreen(
                             onDismissRequest = { showMenuDropdown = false },
                             modifier = Modifier.background(GhSurfaceDark)
                         ) {
+                            DropdownMenuItem(
+                                text = { Text("Search & Replace", color = Color.White) },
+                                onClick = {
+                                    showMenuDropdown = false
+                                    showSearchReplaceDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.FindReplace, contentDescription = null, tint = GhAccentBlue)
+                                }
+                            )
                             DropdownMenuItem(
                                 text = { Text("Copy", color = Color.White) },
                                 onClick = {
@@ -305,6 +331,241 @@ fun CodeEditorScreen(
                 )
             }
         }
+    }
+
+    // Search & Replace Dialog
+    if (showSearchReplaceDialog) {
+        AlertDialog(
+            onDismissRequest = { showSearchReplaceDialog = false },
+            title = {
+                Text(
+                    text = "Search & Replace",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { searchText = it },
+                        label = { Text("Search text:") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = GhAccentBlue,
+                            unfocusedBorderColor = GhTextSecondaryDark,
+                            focusedLabelColor = GhAccentBlue,
+                            unfocusedLabelColor = GhTextSecondaryDark
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = replaceText,
+                        onValueChange = { replaceText = it },
+                        label = { Text("Replace with:") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = GhSuccessGreen,
+                            unfocusedBorderColor = GhTextSecondaryDark,
+                            focusedLabelColor = GhSuccessGreen,
+                            unfocusedLabelColor = GhTextSecondaryDark
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Modifiers: Case Sensitive & Regular Expression
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = isCaseSensitive,
+                            onCheckedChange = { isCaseSensitive = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = GhAccentBlue,
+                                uncheckedColor = GhTextSecondaryDark,
+                                checkmarkColor = Color.White
+                            )
+                        )
+                        Text(
+                            text = "Case sensitive",
+                            fontSize = 14.sp,
+                            color = Color.White
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = isRegex,
+                            onCheckedChange = { isRegex = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = GhAccentBlue,
+                                uncheckedColor = GhTextSecondaryDark,
+                                checkmarkColor = Color.White
+                            )
+                        )
+                        Text(
+                            text = "Regular expression",
+                            fontSize = 14.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // REPLACE ALL Button
+                    TextButton(
+                        onClick = {
+                            if (searchText.isEmpty()) {
+                                Toast.makeText(context, "Please enter search text", Toast.LENGTH_SHORT).show()
+                                return@TextButton
+                            }
+
+                            try {
+                                val matchCount: Int
+                                val updated: String
+
+                                if (isRegex) {
+                                    val regexOptions = if (isCaseSensitive) emptySet() else setOf(RegexOption.IGNORE_CASE)
+                                    val regex = Regex(searchText, regexOptions)
+                                    matchCount = regex.findAll(codeText).count()
+                                    updated = codeText.replace(regex, replaceText)
+                                } else {
+                                    val regexOptions = if (isCaseSensitive) emptySet() else setOf(RegexOption.IGNORE_CASE)
+                                    val regex = Regex(Regex.escape(searchText), regexOptions)
+                                    matchCount = regex.findAll(codeText).count()
+                                    updated = codeText.replace(searchText, replaceText, ignoreCase = !isCaseSensitive)
+                                }
+
+                                if (matchCount > 0) {
+                                    val old = codeText
+                                    if (old != lastPushedText) {
+                                        undoStack = undoStack + old
+                                    }
+                                    codeText = updated
+                                    undoStack = undoStack + updated
+                                    lastPushedText = updated
+                                    redoStack = emptyList()
+                                    Toast.makeText(context, "$matchCount match(es) of \"$searchText\" were replaced with \"$replaceText\".", Toast.LENGTH_SHORT).show()
+                                    showSearchReplaceDialog = false
+                                } else {
+                                    Toast.makeText(context, "No matches found for \"$searchText\".", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
+                        Text("REPLACE ALL", color = GhSuccessGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+
+                    // REPLACE Single Match Button
+                    TextButton(
+                        onClick = {
+                            if (searchText.isEmpty()) {
+                                Toast.makeText(context, "Please enter search text", Toast.LENGTH_SHORT).show()
+                                return@TextButton
+                            }
+
+                            try {
+                                val updated: String
+                                var replaced = false
+
+                                if (isRegex) {
+                                    val regexOptions = if (isCaseSensitive) emptySet() else setOf(RegexOption.IGNORE_CASE)
+                                    val regex = Regex(searchText, regexOptions)
+                                    val match = regex.find(codeText)
+                                    if (match != null) {
+                                        updated = codeText.replaceRange(match.range, replaceText)
+                                        replaced = true
+                                    } else {
+                                        updated = codeText
+                                    }
+                                } else {
+                                    val index = codeText.indexOf(searchText, ignoreCase = !isCaseSensitive)
+                                    if (index >= 0) {
+                                        updated = codeText.substring(0, index) + replaceText + codeText.substring(index + searchText.length)
+                                        replaced = true
+                                    } else {
+                                        updated = codeText
+                                    }
+                                }
+
+                                if (replaced) {
+                                    val old = codeText
+                                    if (old != lastPushedText) {
+                                        undoStack = undoStack + old
+                                    }
+                                    codeText = updated
+                                    undoStack = undoStack + updated
+                                    lastPushedText = updated
+                                    redoStack = emptyList()
+                                    Toast.makeText(context, "Replaced 1 occurrence of \"$searchText\".", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "No matches found for \"$searchText\".", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
+                        Text("REPLACE", color = GhAccentBlue, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+
+                    // SEARCH / FIND Button
+                    TextButton(
+                        onClick = {
+                            if (searchText.isEmpty()) {
+                                Toast.makeText(context, "Please enter search text", Toast.LENGTH_SHORT).show()
+                                return@TextButton
+                            }
+
+                            try {
+                                val matchCount = if (isRegex) {
+                                    val regexOptions = if (isCaseSensitive) emptySet() else setOf(RegexOption.IGNORE_CASE)
+                                    Regex(searchText, regexOptions).findAll(codeText).count()
+                                } else {
+                                    val regexOptions = if (isCaseSensitive) emptySet() else setOf(RegexOption.IGNORE_CASE)
+                                    Regex(Regex.escape(searchText), regexOptions).findAll(codeText).count()
+                                }
+
+                                Toast.makeText(context, "Found $matchCount match(es) for \"$searchText\".", Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Invalid regex pattern: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
+                        Text("SEARCH", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSearchReplaceDialog = false }) {
+                    Text("CANCEL", color = GhTextSecondaryDark, fontSize = 12.sp)
+                }
+            },
+            containerColor = GhSurfaceDark,
+            shape = RoundedCornerShape(12.dp)
+        )
     }
 
     // Commit Message Entry Dialog
