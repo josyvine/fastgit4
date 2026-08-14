@@ -30,7 +30,7 @@ fun NotificationsScreen(notificationViewModel: NotificationViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(GhBgDark)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -43,11 +43,15 @@ fun NotificationsScreen(notificationViewModel: NotificationViewModel) {
                     text = "Notifications",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 IconButton(onClick = { notificationViewModel.loadNotifications() }) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = GhAccentBlue)
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
@@ -55,11 +59,14 @@ fun NotificationsScreen(notificationViewModel: NotificationViewModel) {
 
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = GhAccentBlue)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else if (notifications.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("All caught up! No notifications.", color = GhTextSecondaryDark)
+                    Text(
+                        text = "All caught up! No notifications.",
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                    )
                 }
             } else {
                 LazyColumn(
@@ -91,7 +98,7 @@ fun NotificationCardItem(notification: Notification, onMarkRead: () -> Unit) {
     val iconColor = when (notification.subject?.type) {
         "PullRequest" -> GhPrimaryViolet
         "Issue" -> GhSuccessGreen
-        "Workflow" -> GhAccentBlue
+        "Workflow" -> MaterialTheme.colorScheme.primary
         else -> GhWarningYellow
     }
 
@@ -101,7 +108,7 @@ fun NotificationCardItem(notification: Notification, onMarkRead: () -> Unit) {
             .clickable { onMarkRead() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isUnread) GhSurfaceDark else Color(0xFF13171D)
+            containerColor = if (isUnread) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
         ),
         border = ButtonDefaults.outlinedButtonBorder(enabled = true)
     ) {
@@ -125,7 +132,7 @@ fun NotificationCardItem(notification: Notification, onMarkRead: () -> Unit) {
                 Text(
                     text = notification.repository?.fullName ?: "GitHub Alert",
                     fontSize = 11.sp,
-                    color = GhTextSecondaryDark,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     fontWeight = FontWeight.Medium
                 )
 
@@ -133,14 +140,14 @@ fun NotificationCardItem(notification: Notification, onMarkRead: () -> Unit) {
                     text = notification.subject?.title ?: "Notification detail",
                     fontSize = 14.sp,
                     fontWeight = if (isUnread) FontWeight.Bold else FontWeight.Normal,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 notification.updatedAt?.let { time ->
                     Text(
                         text = time,
                         fontSize = 11.sp,
-                        color = GhTextSecondaryDark,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
@@ -151,7 +158,7 @@ fun NotificationCardItem(notification: Notification, onMarkRead: () -> Unit) {
                     modifier = Modifier
                         .size(10.dp)
                         .clip(CircleShape)
-                        .background(GhAccentBlue)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
         }
