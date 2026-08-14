@@ -29,7 +29,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val keystoreDao = database.keystoreProfileDao()
 
     // Standard Preferences States
-    private val _themeMode = MutableStateFlow("System")
+    private val _themeMode = MutableStateFlow(tokenManager.getThemeMode())
     val themeMode: StateFlow<String> = _themeMode
 
     private val _cacheSize = MutableStateFlow("4.2 MB")
@@ -60,7 +60,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val downloadStep: StateFlow<String> = _downloadStep
 
     init {
-        _themeMode.value = "System"
+        _themeMode.value = tokenManager.getThemeMode()
         observeSavedProfiles()
         loadUserRepositories()
     }
@@ -68,6 +68,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     // Standard Preferences Logic
     fun setTheme(theme: String) {
         _themeMode.value = theme
+        tokenManager.saveThemeMode(theme)
         AppLogger.i("Settings", "App theme set to: $theme")
     }
 
