@@ -48,7 +48,7 @@ fun ProfileScreen(
             onRefresh = {
                 isRefreshing = true
                 coroutineScope.launch {
-                    profileViewModel.loadUserProfile()
+                    profileViewModel.loadProfile()
                     isRefreshing = false
                 }
             },
