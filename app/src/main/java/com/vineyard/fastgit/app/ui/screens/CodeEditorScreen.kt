@@ -84,16 +84,7 @@ fun CodeEditorScreen(
                     }
                 },
                 actions = {
-                    // Quick Search & Replace Icon Button
-                    IconButton(onClick = { showSearchReplaceDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search & Replace",
-                            tint = Color.White
-                        )
-                    }
-
-                    // Collapsible Actions Dropdown (Copy, Paste, Cut, Find & Replace, Delete)
+                    // Collapsible Actions Dropdown (Search & Replace, Copy, Paste, Cut, Delete)
                     Box {
                         IconButton(onClick = { showMenuDropdown = true }) {
                             Icon(
