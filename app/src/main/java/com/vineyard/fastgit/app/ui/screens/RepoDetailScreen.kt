@@ -112,7 +112,6 @@ fun RepoDetailScreen(
 
     Scaffold(
         topBar = {
-            // Hide TopAppBar only when Explorer is maximized
             if (!isExplorerMaximized || selectedTab != 0) {
                 TopAppBar(
                     title = {
@@ -121,27 +120,30 @@ fun RepoDetailScreen(
                                 text = repository?.name ?: repoDetailViewModel.repoName,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "${repoDetailViewModel.owner} • branch: $currentBranch",
                                 fontSize = 12.sp,
-                                color = GhTextSecondaryDark
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     },
                     actions = {
-                        // Branch Selector Dropdown Button
                         var branchMenuExpanded by remember { mutableStateOf(false) }
                         Box {
                             TextButton(
                                 onClick = { branchMenuExpanded = true },
-                                colors = ButtonDefaults.textButtonColors(contentColor = GhAccentBlue)
+                                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                             ) {
                                 Icon(Icons.Default.CallSplit, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -151,11 +153,11 @@ fun RepoDetailScreen(
                             DropdownMenu(
                                 expanded = branchMenuExpanded,
                                 onDismissRequest = { branchMenuExpanded = false },
-                                modifier = Modifier.background(GhSurfaceDark)
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                             ) {
                                 branches.forEach { branch ->
                                     DropdownMenuItem(
-                                        text = { Text(branch.name, color = Color.White) },
+                                        text = { Text(branch.name, color = MaterialTheme.colorScheme.onSurface) },
                                         onClick = {
                                             branchMenuExpanded = false
                                             repoDetailViewModel.switchBranch(branch.name)
@@ -165,35 +167,36 @@ fun RepoDetailScreen(
                             }
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = GhSurfaceDark)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
                 )
             }
         },
-        containerColor = GhBgDark
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(if (isExplorerMaximized && selectedTab == 0) PaddingValues(0.dp) else innerPadding)
         ) {
-            // Scrollable Sub-Tabs Row (Hide when Explorer is maximized)
             if (!isExplorerMaximized || selectedTab != 0) {
                 ScrollableTabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = GhSurfaceDark,
-                    contentColor = GhAccentBlue,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary,
                     edgePadding = 12.dp
                 ) {
                     tabTitles.forEachIndexed { index, title ->
+                        val isSelected = selectedTab == index
+                        val tabColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         Tab(
-                            selected = selectedTab == index,
+                            selected = isSelected,
                             onClick = { selectedTab = index },
                             text = {
                                 Text(
                                     text = title,
                                     fontSize = 13.sp,
-                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == index) GhAccentBlue else GhTextSecondaryDark
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = tabColor
                                 )
                             }
                         )
@@ -201,7 +204,6 @@ fun RepoDetailScreen(
                 }
             }
 
-            // Tab Content
             Box(modifier = Modifier.weight(1f)) {
                 when (selectedTab) {
                     0 -> ExplorerTabContent(
@@ -243,7 +245,7 @@ fun RepoDetailScreen(
                     .fillMaxWidth(0.95f)
                     .fillMaxHeight(0.85f),
                 shape = RoundedCornerShape(12.dp),
-                color = GhSurfaceDark
+                color = MaterialTheme.colorScheme.surface
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Row(
@@ -257,13 +259,13 @@ fun RepoDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Terminal,
                                 contentDescription = null,
-                                tint = GhAccentBlue,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Build Logs: Run #${selectedRunForLogs?.runNumber}",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
                             )
@@ -291,8 +293,8 @@ fun RepoDetailScreen(
                                 if (showConfirmDownloadDialog) {
                                     AlertDialog(
                                         onDismissRequest = { showConfirmDownloadDialog = false },
-                                        title = { Text("Download Build Artifacts?", color = Color.White, fontWeight = FontWeight.Bold) },
-                                        text = { Text("Do you want to download and extract the build APK artifacts from this run to your local storage?", color = GhTextSecondaryDark) },
+                                        title = { Text("Download Build Artifacts?", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
+                                        text = { Text("Do you want to download and extract the build APK artifacts from this run to your local storage?", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)) },
                                         confirmButton = {
                                             Button(
                                                 onClick = {
@@ -303,15 +305,15 @@ fun RepoDetailScreen(
                                                 },
                                                 colors = ButtonDefaults.buttonColors(containerColor = GhSuccessGreen)
                                             ) {
-                                                Text("Download")
+                                                Text("Download", color = Color.White)
                                             }
                                         },
                                         dismissButton = {
                                             TextButton(onClick = { showConfirmDownloadDialog = false }) {
-                                                Text("Cancel", color = Color.White)
+                                                Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                                             }
                                         },
-                                        containerColor = GhSurfaceDark
+                                        containerColor = MaterialTheme.colorScheme.surface
                                     )
                                 }
                             }
@@ -326,7 +328,7 @@ fun RepoDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Close Logs",
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -351,7 +353,7 @@ fun RepoDetailScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = GhAccentBlue)
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                             }
                         } else {
                             val verticalScroll = rememberScrollState()
@@ -369,16 +371,16 @@ fun RepoDetailScreen(
                         DropdownMenu(
                             expanded = showLogsContextMenu,
                             onDismissRequest = { showLogsContextMenu = false },
-                            modifier = Modifier.background(GhSurfaceDark)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Copy Build Logs", color = Color.White) },
+                                text = { Text("Copy Build Logs", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showLogsContextMenu = false
                                     clipboardManager.setText(AnnotatedString(workflowLogs ?: ""))
                                     Toast.makeText(context, "Build logs copied to clipboard!", Toast.LENGTH_SHORT).show()
                                 },
-                                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = GhAccentBlue) }
+                                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             )
                             DropdownMenuItem(
                                 text = { Text("Download Build Logs", color = GhSuccessGreen) },
@@ -411,7 +413,7 @@ fun RepoDetailScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "Downloading Artifacts",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -422,7 +424,7 @@ fun RepoDetailScreen(
                     Text(
                         text = "Downloading and extracting build APK artifacts to Downloads/FastGit...",
                         fontSize = 13.sp,
-                        color = GhTextSecondaryDark
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
                     if (artifactDownloadProgress != null) {
@@ -433,7 +435,7 @@ fun RepoDetailScreen(
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(4.dp)),
                             color = GhSuccessGreen,
-                            trackColor = GhCardBorderDark
+                            trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
                     } else {
                         LinearProgressIndicator(
@@ -442,7 +444,7 @@ fun RepoDetailScreen(
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(4.dp)),
                             color = GhSuccessGreen,
-                            trackColor = GhCardBorderDark
+                            trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
                     }
 
@@ -454,7 +456,7 @@ fun RepoDetailScreen(
                         Text(
                             text = artifactDownloadStep,
                             fontSize = 12.sp,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         if (artifactDownloadProgress != null) {
@@ -462,14 +464,14 @@ fun RepoDetailScreen(
                                 text = "${((artifactDownloadProgress ?: 0f) * 100).toInt()}%",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = GhAccentBlue
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
                 }
             },
             confirmButton = {},
-            containerColor = GhSurfaceDark,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(12.dp)
         )
     }
@@ -478,13 +480,13 @@ fun RepoDetailScreen(
     if (isUploadingZip) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Uploading Android Project ZIP", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Uploading Android Project ZIP", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(
                         text = "Extracting, scanning, and preserving folder hierarchy on GitHub...",
                         fontSize = 13.sp,
-                        color = GhTextSecondaryDark
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
                     LinearProgressIndicator(
@@ -494,7 +496,7 @@ fun RepoDetailScreen(
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
                         color = GhSuccessGreen,
-                        trackColor = GhCardBorderDark
+                        trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
 
                     Row(
@@ -505,14 +507,14 @@ fun RepoDetailScreen(
                         Text(
                             text = uploadStep,
                             fontSize = 12.sp,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = "${(uploadProgress * 100).toInt()}%",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = GhAccentBlue
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -523,7 +525,7 @@ fun RepoDetailScreen(
                     Text("Cancel", color = GhErrorRed)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -531,13 +533,13 @@ fun RepoDetailScreen(
     if (isRefactoring) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Refactoring Project Structure", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Refactoring Project Structure", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(
                         text = "Scanning, renaming namespace references, and moving physical directory folders on GitHub...",
                         fontSize = 13.sp,
-                        color = GhTextSecondaryDark
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
                     LinearProgressIndicator(
@@ -547,7 +549,7 @@ fun RepoDetailScreen(
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
                         color = GhSuccessGreen,
-                        trackColor = GhCardBorderDark
+                        trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
 
                     Row(
@@ -558,20 +560,20 @@ fun RepoDetailScreen(
                         Text(
                             text = refactorStep,
                             fontSize = 12.sp,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = "${(refactorProgress * 100).toInt()}%",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = GhAccentBlue
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             },
             confirmButton = {},
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -683,7 +685,7 @@ fun ExplorerTabContent(
             if (!isMaximized) {
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -701,7 +703,7 @@ fun ExplorerTabContent(
                             ) {
                                 Icon(Icons.Default.FolderZip, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Upload ZIP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("Upload ZIP", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
 
                             OutlinedButton(
@@ -709,9 +711,9 @@ fun ExplorerTabContent(
                                 shape = RoundedCornerShape(8.dp),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                             ) {
-                                Icon(Icons.Default.FindReplace, contentDescription = null, tint = GhAccentBlue, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.FindReplace, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Refactor / Replace", fontSize = 11.sp, color = Color.White)
+                                Text("Refactor / Replace", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
                             }
 
                             OutlinedButton(
@@ -724,7 +726,7 @@ fun ExplorerTabContent(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, tint = GhSuccessGreen, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("New File", fontSize = 11.sp, color = Color.White)
+                                Text("New File", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
@@ -733,7 +735,7 @@ fun ExplorerTabContent(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF161B22), RoundedCornerShape(6.dp))
+                                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(6.dp))
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -741,7 +743,7 @@ fun ExplorerTabContent(
                                 Text(
                                     text = "Copied: ${copiedItem?.name}",
                                     fontSize = 11.sp,
-                                    color = GhAccentBlue,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontFamily = FontFamily.Monospace,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -767,12 +769,12 @@ fun ExplorerTabContent(
             ) {
                 Row(
                     modifier = Modifier
-                        .background(GhSurfaceDark, RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
                         .padding(2.dp)
                 ) {
                     Surface(
                         onClick = { explorerMode = 0 },
-                        color = if (explorerMode == 0) GhAccentBlue else Color.Transparent,
+                        color = if (explorerMode == 0) MaterialTheme.colorScheme.primary else Color.Transparent,
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Row(
@@ -782,7 +784,7 @@ fun ExplorerTabContent(
                             Icon(
                                 imageVector = Icons.Default.AccountTree,
                                 contentDescription = null,
-                                tint = if (explorerMode == 0) Color.White else GhTextSecondaryDark,
+                                tint = if (explorerMode == 0) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -790,14 +792,14 @@ fun ExplorerTabContent(
                                 text = "Tree View",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (explorerMode == 0) Color.White else GhTextSecondaryDark
+                                color = if (explorerMode == 0) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
                     }
 
                     Surface(
                         onClick = { explorerMode = 1 },
-                        color = if (explorerMode == 1) GhAccentBlue else Color.Transparent,
+                        color = if (explorerMode == 1) MaterialTheme.colorScheme.primary else Color.Transparent,
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Row(
@@ -807,7 +809,7 @@ fun ExplorerTabContent(
                             Icon(
                                 imageVector = Icons.Default.Folder,
                                 contentDescription = null,
-                                tint = if (explorerMode == 1) Color.White else GhTextSecondaryDark,
+                                tint = if (explorerMode == 1) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -815,7 +817,7 @@ fun ExplorerTabContent(
                                 text = "Folder View",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (explorerMode == 1) Color.White else GhTextSecondaryDark
+                                color = if (explorerMode == 1) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
                     }
@@ -833,15 +835,15 @@ fun ExplorerTabContent(
                         OutlinedTextField(
                             value = localSearchQuery,
                             onValueChange = { localSearchQuery = it },
-                            placeholder = { Text("Search file/folder...", fontSize = 12.sp, color = GhTextSecondaryDark) },
+                            placeholder = { Text("Search file/folder...", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
                             singleLine = true,
-                            textStyle = TextStyle(color = Color.White, fontSize = 13.sp),
+                            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedContainerColor = GhSurfaceDark,
-                                unfocusedContainerColor = GhSurfaceDark,
-                                focusedBorderColor = GhAccentBlue,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(8.dp),
@@ -861,7 +863,7 @@ fun ExplorerTabContent(
                                         Icon(
                                             imageVector = Icons.Default.Search,
                                             contentDescription = "Submit Search",
-                                            tint = GhAccentBlue,
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
@@ -890,7 +892,7 @@ fun ExplorerTabContent(
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search Directory",
-                                tint = GhAccentBlue,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -898,7 +900,7 @@ fun ExplorerTabContent(
                             Text(
                                 text = "Tap arrow to expand inline",
                                 fontSize = 10.sp,
-                                color = GhTextSecondaryDark,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 modifier = Modifier.padding(start = 4.dp)
                             )
                         }
@@ -930,8 +932,8 @@ fun ExplorerTabContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(3.dp),
-                    color = GhAccentBlue,
-                    trackColor = GhCardBorderDark
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
             }
@@ -955,7 +957,7 @@ fun ExplorerTabContent(
                 if (visibleItems.isEmpty() && !isLoading) {
                     item(key = "empty_directory_banner") {
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -970,13 +972,13 @@ fun ExplorerTabContent(
                                 Icon(
                                     imageVector = Icons.Default.FolderOpen,
                                     contentDescription = null,
-                                    tint = GhAccentBlue,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(40.dp)
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
                                     text = if (currentPath.isEmpty()) "This repository is empty" else "This folder is empty",
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 )
@@ -986,7 +988,7 @@ fun ExplorerTabContent(
                                         "No files found on branch. Upload a ZIP project or add a file to get started." 
                                     else 
                                         "No files found in /$currentPath",
-                                    color = GhTextSecondaryDark,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                     fontSize = 12.sp,
                                     textAlign = TextAlign.Center
                                 )
@@ -1000,7 +1002,7 @@ fun ExplorerTabContent(
                                     ) {
                                         Icon(Icons.Default.FolderZip, contentDescription = null, modifier = Modifier.size(14.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Upload ZIP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text("Upload ZIP", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                     }
                                     OutlinedButton(
                                         onClick = {
@@ -1012,7 +1014,7 @@ fun ExplorerTabContent(
                                     ) {
                                         Icon(Icons.Default.Add, contentDescription = null, tint = GhSuccessGreen, modifier = Modifier.size(14.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("New File", fontSize = 11.sp, color = Color.White)
+                                        Text("New File", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
@@ -1072,13 +1074,13 @@ fun ExplorerTabContent(
 
         AlertDialog(
             onDismissRequest = { showNewFileDialog = false },
-            title = { Text("Create New File", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Create New File", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     val activeDirText = if (targetPathForAction.isBlank()) "root" else "/$targetPathForAction"
                     Text(
                         text = "Creating file inside: $activeDirText",
-                        color = GhAccentBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1088,8 +1090,8 @@ fun ExplorerTabContent(
                         label = { Text("File Name (e.g. MyClass.kt)") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1099,8 +1101,8 @@ fun ExplorerTabContent(
                         onValueChange = { initialCode = it },
                         label = { Text("Initial Content (optional)") },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1115,15 +1117,15 @@ fun ExplorerTabContent(
                     enabled = newFileName.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = GhSuccessGreen)
                 ) {
-                    Text("Create File")
+                    Text("Create File", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showNewFileDialog = false }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -1134,18 +1136,18 @@ fun ExplorerTabContent(
 
         AlertDialog(
             onDismissRequest = { renameTargetItem = null },
-            title = { Text("Rename ${target.type.replaceFirstChar { it.uppercase() }}", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Rename ${target.type.replaceFirstChar { it.uppercase() }}", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Current path: /${target.path}", fontSize = 12.sp, color = GhTextSecondaryDark)
+                    Text("Current path: /${target.path}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                     OutlinedTextField(
                         value = newNameInput,
                         onValueChange = { newNameInput = it },
                         label = { Text("New Name") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1159,17 +1161,17 @@ fun ExplorerTabContent(
                         repoDetailViewModel.renameItem(t, newNameInput)
                     },
                     enabled = newNameInput.isNotBlank() && newNameInput != target.name,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = GhAccentBlue)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Rename")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { renameTargetItem = null }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -1181,7 +1183,7 @@ fun ExplorerTabContent(
             onDismissRequest = { deleteTargetItem = null },
             title = { Text("Delete ${target.name}?", color = Color.Red, fontWeight = FontWeight.Bold) },
             text = {
-                Text("Are you sure you want to delete '${target.path}' from this repository? This will commit a deletion on branch.", color = Color.White)
+                Text("Are you sure you want to delete '${target.path}' from this repository? This will commit a deletion on branch.", color = MaterialTheme.colorScheme.onSurface)
             },
             confirmButton = {
                 Button(
@@ -1192,15 +1194,15 @@ fun ExplorerTabContent(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
-                    Text("Delete Permanently")
+                    Text("Delete Permanently", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { deleteTargetItem = null }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -1214,22 +1216,22 @@ fun ExplorerTabContent(
             onDismissRequest = { showSearchReplaceDialog = false },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.FindReplace, contentDescription = null, tint = GhAccentBlue)
+                    Icon(Icons.Default.FindReplace, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Global Search & Replace", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Global Search & Replace", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 }
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Refactor package names or search/replace code across all files in repository.", fontSize = 12.sp, color = GhTextSecondaryDark)
+                    Text("Refactor package names or search/replace code across all files in repository.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                     OutlinedTextField(
                         value = searchQueryInput,
                         onValueChange = { searchQueryInput = it },
                         label = { Text("Search string (e.g. com.oldpackage)") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1240,8 +1242,8 @@ fun ExplorerTabContent(
                         label = { Text("Replace with (e.g. com.newpackage)") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1256,19 +1258,19 @@ fun ExplorerTabContent(
                         Checkbox(
                             checked = isSmartRefactorEnabled,
                             onCheckedChange = { isSmartRefactorEnabled = it },
-                            colors = CheckboxDefaults.colors(checkedColor = GhAccentBlue)
+                            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
                                 text = "Smart Package Refactor",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = "Moves physical folders to match the new package structure.",
-                                color = GhTextSecondaryDark,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 fontSize = 11.sp
                             )
                         }
@@ -1288,17 +1290,17 @@ fun ExplorerTabContent(
                         }
                     },
                     enabled = searchQueryInput.isNotBlank() && replaceQueryInput.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Replace All Occurrences")
+                    Text("Replace All Occurrences", color = MaterialTheme.colorScheme.surface)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSearchReplaceDialog = false }) {
-                    Text("Cancel", color = Color.White)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -1330,7 +1332,7 @@ fun TreeItemNodeRow(
         Icons.Default.Description
     }
 
-    val iconTint = if (item.type == "dir") GhAccentBlue else Color(0xFFC9D1D9)
+    val iconTint = if (item.type == "dir") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
 
     Box {
         Surface(
@@ -1340,7 +1342,7 @@ fun TreeItemNodeRow(
                     onClick = { onItemClick(item) },
                     onLongClick = { showContextMenu = true }
                 ),
-            color = GhSurfaceDark,
+            color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(
@@ -1357,7 +1359,7 @@ fun TreeItemNodeRow(
                     text = item.name,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
                 if (item.type == "dir") {
@@ -1377,10 +1379,10 @@ fun TreeItemNodeRow(
                         DropdownMenu(
                             expanded = showPlusMenu,
                             onDismissRequest = { showPlusMenu = false },
-                            modifier = Modifier.background(GhSurfaceDark)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Create File", color = Color.White) },
+                                text = { Text("Create File", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showPlusMenu = false
                                     onCreateFileInFolder(item)
@@ -1394,7 +1396,7 @@ fun TreeItemNodeRow(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Upload File", color = Color.White) },
+                                text = { Text("Upload File", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     showPlusMenu = false
                                     onUploadFileToFolder(item)
@@ -1403,7 +1405,7 @@ fun TreeItemNodeRow(
                                     Icon(
                                         imageVector = Icons.Default.FileUpload,
                                         contentDescription = null,
-                                        tint = GhAccentBlue
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -1419,7 +1421,7 @@ fun TreeItemNodeRow(
                         Icon(
                             imageVector = Icons.Default.SubdirectoryArrowRight,
                             contentDescription = "Navigate into folder",
-                            tint = GhAccentBlue,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -1428,7 +1430,7 @@ fun TreeItemNodeRow(
                         Icon(
                             imageVector = if (item.isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                             contentDescription = null,
-                            tint = GhTextSecondaryDark,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -1439,19 +1441,19 @@ fun TreeItemNodeRow(
         DropdownMenu(
             expanded = showContextMenu,
             onDismissRequest = { showContextMenu = false },
-            modifier = Modifier.background(GhSurfaceDark)
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             if (item.type == "dir") {
                 DropdownMenuItem(
-                    text = { Text("Open Folder", color = Color.White) },
+                    text = { Text("Open Folder", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         onOpenFolderDirect(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.Folder, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Create File Here", color = Color.White) },
+                    text = { Text("Create File Here", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         onCreateFileInFolder(item)
@@ -1459,12 +1461,12 @@ fun TreeItemNodeRow(
                     leadingIcon = { Icon(Icons.Default.NoteAdd, contentDescription = null, tint = GhSuccessGreen) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Upload File Here", color = Color.White) },
+                    text = { Text("Upload File Here", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         onUploadFileToFolder(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.FileUpload, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.FileUpload, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 if (copiedItem != null) {
                     DropdownMenuItem(
@@ -1477,7 +1479,7 @@ fun TreeItemNodeRow(
                     )
                 }
                 DropdownMenuItem(
-                    text = { Text("Copy Folder Path", color = Color.White) },
+                    text = { Text("Copy Folder Path", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         val deepestPath = repoDetailViewModel.getDeepestSingleDirectoryPath(item)
@@ -1487,15 +1489,15 @@ fun TreeItemNodeRow(
                         Toast.makeText(context, "Folder path copied to clipboard!", Toast.LENGTH_SHORT).show()
                         onCopyItem(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Rename Folder", color = Color.White) },
+                    text = { Text("Rename Folder", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         onRenameItem(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 DropdownMenuItem(
                     text = { Text("Delete Folder", color = Color.Red) },
@@ -1515,15 +1517,15 @@ fun TreeItemNodeRow(
                 )
             } else {
                 DropdownMenuItem(
-                    text = { Text("Edit / View Code", color = Color.White) },
+                    text = { Text("Edit / View Code", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         onItemClick(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Copy File", color = Color.White) },
+                    text = { Text("Copy File", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -1532,15 +1534,15 @@ fun TreeItemNodeRow(
                         Toast.makeText(context, "File path copied to clipboard!", Toast.LENGTH_SHORT).show()
                         onCopyItem(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Rename File", color = Color.White) },
+                    text = { Text("Rename File", color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         showContextMenu = false
                         onRenameItem(item)
                     },
-                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = GhAccentBlue) }
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                 )
                 DropdownMenuItem(
                     text = { Text("Delete File", color = Color.Red) },
@@ -1564,7 +1566,7 @@ fun ParentFolderNodeRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onNavigateUp() },
-        color = Color(0xFF161B22),
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(8.dp),
         border = ButtonDefaults.outlinedButtonBorder(enabled = true)
     ) {
@@ -1576,7 +1578,7 @@ fun ParentFolderNodeRow(
             Icon(
                 imageVector = Icons.Default.DriveFileMove,
                 contentDescription = "Parent Directory",
-                tint = GhAccentBlue,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(10.dp))
@@ -1586,18 +1588,18 @@ fun ParentFolderNodeRow(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
-                    color = GhAccentBlue
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = "Go up from /$currentPath",
                     fontSize = 11.sp,
-                    color = GhTextSecondaryDark
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
             Icon(
                 imageVector = Icons.Default.ArrowUpward,
                 contentDescription = null,
-                tint = GhAccentBlue,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -1632,7 +1634,7 @@ fun BreadcrumbBar(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = GhSurfaceDark,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(
@@ -1649,7 +1651,7 @@ fun BreadcrumbBar(
                 Icon(
                     imageVector = Icons.Default.Folder,
                     contentDescription = null,
-                    tint = GhAccentBlue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
@@ -1665,7 +1667,7 @@ fun BreadcrumbBar(
                         if (index > 0) {
                             Text(
                                 text = "/",
-                                color = GhTextSecondaryDark,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -1673,7 +1675,7 @@ fun BreadcrumbBar(
 
                         Surface(
                             onClick = { onNavigatePath(seg.path) },
-                            color = if (isLast) Color(0xFF21262D) else Color.Transparent,
+                            color = if (isLast) MaterialTheme.colorScheme.outline.copy(alpha = 0.15f) else Color.Transparent,
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
@@ -1681,7 +1683,7 @@ fun BreadcrumbBar(
                                 fontSize = 12.sp,
                                 fontWeight = if (isLast) FontWeight.Bold else FontWeight.Normal,
                                 fontFamily = FontFamily.Monospace,
-                                color = if (isLast) Color.White else GhAccentBlue,
+                                color = if (isLast) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
@@ -1706,10 +1708,10 @@ fun BreadcrumbBar(
                     DropdownMenu(
                         expanded = showPlusMenu,
                         onDismissRequest = { showPlusMenu = false },
-                        modifier = Modifier.background(GhSurfaceDark)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Create File", color = Color.White) },
+                            text = { Text("Create File", color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 showPlusMenu = false
                                 onCreateFileClick()
@@ -1723,7 +1725,7 @@ fun BreadcrumbBar(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Upload File", color = Color.White) },
+                            text = { Text("Upload File", color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 showPlusMenu = false
                                 onUploadFileClick()
@@ -1732,7 +1734,7 @@ fun BreadcrumbBar(
                                 Icon(
                                     imageVector = Icons.Default.FileUpload,
                                     contentDescription = null,
-                                    tint = GhAccentBlue
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         )
@@ -1748,7 +1750,7 @@ fun BreadcrumbBar(
                     Icon(
                         imageVector = if (isMaximized) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
                         contentDescription = if (isMaximized) "Minimize View" else "Maximize View",
-                        tint = GhAccentBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1772,15 +1774,15 @@ fun BranchesTabContent(repoDetailViewModel: RepoDetailViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Branch Manager", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Branch Manager", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
 
             Button(
                 onClick = { showCreateBranchDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
+                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.surface)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("New Branch")
+                Text("New Branch", color = MaterialTheme.colorScheme.surface)
             }
         }
 
@@ -1793,7 +1795,7 @@ fun BranchesTabContent(repoDetailViewModel: RepoDetailViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) GhSurfaceDark else Color(0xFF13171D)
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                     ),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true)
                 ) {
@@ -1801,9 +1803,9 @@ fun BranchesTabContent(repoDetailViewModel: RepoDetailViewModel) {
                         modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.CallSplit, contentDescription = null, tint = if (isSelected) GhAccentBlue else GhTextSecondaryDark)
+                        Icon(Icons.Default.CallSplit, contentDescription = null, tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(branch.name, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.weight(1f))
+                        Text(branch.name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                         if (isSelected) {
                             Surface(
                                 color = GhSuccessGreen.copy(alpha = 0.2f),
@@ -1813,7 +1815,7 @@ fun BranchesTabContent(repoDetailViewModel: RepoDetailViewModel) {
                             }
                         } else {
                             TextButton(onClick = { repoDetailViewModel.switchBranch(branch.name) }) {
-                                Text("Switch", color = GhAccentBlue)
+                                Text("Switch", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -1826,14 +1828,14 @@ fun BranchesTabContent(repoDetailViewModel: RepoDetailViewModel) {
         var branchName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showCreateBranchDialog = false },
-            title = { Text("Create Branch", color = Color.White) },
+            title = { Text("Create Branch", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 OutlinedTextField(
                     value = branchName,
                     onValueChange = { branchName = it },
                     label = { Text("Branch Name") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
@@ -1844,15 +1846,15 @@ fun BranchesTabContent(repoDetailViewModel: RepoDetailViewModel) {
                         repoDetailViewModel.createBranch(branchName)
                     },
                     enabled = branchName.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Create")
+                    Text("Create", color = MaterialTheme.colorScheme.surface)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showCreateBranchDialog = false }) { Text("Cancel", color = Color.White) }
+                TextButton(onClick = { showCreateBranchDialog = false }) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
             },
-            containerColor = GhSurfaceDark
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -1874,9 +1876,9 @@ fun PRsTabContent(repoDetailViewModel: RepoDetailViewModel) {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Pull Requests", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Pull Requests", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Button(onClick = { showCreatePRDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = GhPrimaryViolet)) {
-                Text("New PR")
+                Text("New PR", color = Color.White)
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -1885,15 +1887,15 @@ fun PRsTabContent(repoDetailViewModel: RepoDetailViewModel) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true)
                 ) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CallMerge, contentDescription = null, tint = GhPrimaryViolet)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("#${pr.number} ${pr.title}", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text("opened by ${pr.user?.login ?: "user"} • ${pr.createdAt ?: "recently"}", fontSize = 11.sp, color = GhTextSecondaryDark)
+                            Text("#${pr.number} ${pr.title}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                            Text("opened by ${pr.user?.login ?: "user"} • ${pr.createdAt ?: "recently"}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
                     }
                 }
@@ -1906,11 +1908,11 @@ fun PRsTabContent(repoDetailViewModel: RepoDetailViewModel) {
         var prBody by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showCreatePRDialog = false },
-            title = { Text("Create Pull Request", color = Color.White) },
+            title = { Text("Create Pull Request", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(value = prTitle, onValueChange = { prTitle = it }, label = { Text("Title") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White), modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = prBody, onValueChange = { prBody = it }, label = { Text("Body") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White), modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = prTitle, onValueChange = { prTitle = it }, label = { Text("Title") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface), modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = prBody, onValueChange = { prBody = it }, label = { Text("Body") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface), modifier = Modifier.fillMaxWidth())
                 }
             },
             confirmButton = {
@@ -1918,11 +1920,11 @@ fun PRsTabContent(repoDetailViewModel: RepoDetailViewModel) {
                     showCreatePRDialog = false
                     repoDetailViewModel.createPullRequest(prTitle, "feature/ui", "main", prBody)
                 }, enabled = prTitle.isNotBlank(), colors = ButtonDefaults.buttonColors(containerColor = GhPrimaryViolet)) {
-                    Text("Submit PR")
+                    Text("Submit PR", color = Color.White)
                 }
             },
-            dismissButton = { TextButton(onClick = { showCreatePRDialog = false }) { Text("Cancel", color = Color.White) } },
-            containerColor = GhSurfaceDark
+            dismissButton = { TextButton(onClick = { showCreatePRDialog = false }) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) } },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -1934,9 +1936,9 @@ fun IssuesTabContent(repoDetailViewModel: RepoDetailViewModel) {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Issues Tracker", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Issues Tracker", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Button(onClick = { showCreateIssueDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = GhSuccessGreen)) {
-                Text("New Issue")
+                Text("New Issue", color = Color.White)
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -1945,15 +1947,15 @@ fun IssuesTabContent(repoDetailViewModel: RepoDetailViewModel) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true)
                 ) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = GhSuccessGreen)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("#${issue.number} ${issue.title}", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text("opened by ${issue.user?.login ?: "user"}", fontSize = 11.sp, color = GhTextSecondaryDark)
+                            Text("#${issue.number} ${issue.title}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                            Text("opened by ${issue.user?.login ?: "user"}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
                     }
                 }
@@ -1966,11 +1968,11 @@ fun IssuesTabContent(repoDetailViewModel: RepoDetailViewModel) {
         var body by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showCreateIssueDialog = false },
-            title = { Text("Create Issue", color = Color.White) },
+            title = { Text("Create Issue", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Issue Title") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White), modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = body, onValueChange = { body = it }, label = { Text("Description") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White), modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Issue Title") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface), modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = body, onValueChange = { body = it }, label = { Text("Description") }, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface), modifier = Modifier.fillMaxWidth())
                 }
             },
             confirmButton = {
@@ -1978,11 +1980,11 @@ fun IssuesTabContent(repoDetailViewModel: RepoDetailViewModel) {
                     showCreateIssueDialog = false
                     repoDetailViewModel.createIssue(title, body)
                 }, enabled = title.isNotBlank(), colors = ButtonDefaults.buttonColors(containerColor = GhSuccessGreen)) {
-                    Text("Create")
+                    Text("Create", color = Color.White)
                 }
             },
-            dismissButton = { TextButton(onClick = { showCreateIssueDialog = false }) { Text("Cancel", color = Color.White) } },
-            containerColor = GhSurfaceDark
+            dismissButton = { TextButton(onClick = { showCreateIssueDialog = false }) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) } },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -2012,32 +2014,32 @@ fun ActionsTabContent(
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item {
-                Text("GitHub Actions Workflows", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("GitHub Actions Workflows", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             items(workflows) { wf ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true)
                 ) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.PlayCircleOutline, contentDescription = null, tint = GhAccentBlue)
+                        Icon(Icons.Default.PlayCircleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(wf.name, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text(wf.path, fontSize = 11.sp, color = GhTextSecondaryDark)
+                            Text(wf.name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                            Text(wf.path, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
-                        Button(onClick = { repoDetailViewModel.triggerWorkflow(wf.id) }, colors = ButtonDefaults.buttonColors(containerColor = GhAccentBlue)) {
-                            Text("Run", fontSize = 12.sp)
+                        Button(onClick = { repoDetailViewModel.triggerWorkflow(wf.id) }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                            Text("Run", fontSize = 12.sp, color = MaterialTheme.colorScheme.surface)
                         }
                     }
                 }
             }
 
             item {
-                Text("Recent Workflow Runs", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Recent Workflow Runs", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             items(workflowRuns) { run ->
@@ -2060,14 +2062,14 @@ fun ActionsTabContent(
                                 onLongClick = { runMenuExpanded = true }
                             ),
                         shape = RoundedCornerShape(10.dp),
-                        colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true)
                     ) {
                         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (isRunning) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
-                                    color = GhAccentBlue,
+                                    color = MaterialTheme.colorScheme.primary,
                                     strokeWidth = 2.dp
                                 )
                             } else {
@@ -2083,7 +2085,7 @@ fun ActionsTabContent(
                                 Text(
                                     text = runTitle,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 14.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -2092,7 +2094,7 @@ fun ActionsTabContent(
                                 Text(
                                     text = "$runWorkflowName #${run.runNumber} • branch: ${run.headBranch ?: "main"} • status: ${run.status}",
                                     fontSize = 11.sp,
-                                    color = GhTextSecondaryDark,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -2103,15 +2105,15 @@ fun ActionsTabContent(
                     DropdownMenu(
                         expanded = runMenuExpanded,
                         onDismissRequest = { runMenuExpanded = false },
-                        modifier = Modifier.background(GhSurfaceDark)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Copy Run Logs", color = Color.White) },
+                            text = { Text("Copy Run Logs", color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 runMenuExpanded = false
                                 repoDetailViewModel.copyWorkflowLogsDirect(run.id, context)
                             },
-                            leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = GhAccentBlue) }
+                            leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                         )
                         DropdownMenuItem(
                             text = { Text("Download Run Logs", color = GhSuccessGreen) },
@@ -2133,18 +2135,18 @@ fun ReleasesTabContent(repoDetailViewModel: RepoDetailViewModel) {
     val releases by repoDetailViewModel.releases.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
-            Text("Releases & Assets", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Releases & Assets", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         }
         items(releases) { release ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = ButtonDefaults.outlinedButtonBorder(enabled = true)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("${release.tagName} - ${release.name}", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 15.sp)
-                    Text(release.body ?: "No release notes provided", color = GhTextSecondaryDark, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                    Text("${release.tagName} - ${release.name}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+                    Text(release.body ?: "No release notes provided", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                 }
             }
         }
@@ -2155,19 +2157,19 @@ fun ReleasesTabContent(repoDetailViewModel: RepoDetailViewModel) {
 fun RepoSettingsTabContent(repoDetailViewModel: RepoDetailViewModel, onBack: () -> Unit) {
     val repository by repoDetailViewModel.repository.collectAsState()
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Repository Settings", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Text("Repository Settings", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
 
         Card(
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = GhSurfaceDark),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = ButtonDefaults.outlinedButtonBorder(enabled = true),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Metadata", fontWeight = FontWeight.Bold, color = GhAccentBlue)
-                Text("Name: ${repository?.name}", color = Color.White)
-                Text("Full Name: ${repository?.fullName}", color = Color.White)
-                Text("Visibility: ${if (repository?.private == true) "Private" else "Public"}", color = Color.White)
+                Text("Metadata", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text("Name: ${repository?.name}", color = MaterialTheme.colorScheme.onSurface)
+                Text("Full Name: ${repository?.fullName}", color = MaterialTheme.colorScheme.onSurface)
+                Text("Visibility: ${if (repository?.private == true) "Private" else "Public"}", color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
