@@ -399,7 +399,7 @@ fun RepoDetailScreen(
         }
     }
 
-    // Artifact Download Progress Dialog (Fixed against NPE during redraw)
+    // Artifact Download Progress Dialog (Crash-Proof Against Null Unboxing)
     if (isDownloadingArtifact) {
         AlertDialog(
             onDismissRequest = { },
@@ -428,26 +428,15 @@ fun RepoDetailScreen(
                     )
 
                     val currentProgress = artifactDownloadProgress
-                    if (currentProgress != null) {
-                        LinearProgressIndicator(
-                            progress = { currentProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = GhSuccessGreen,
-                            trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
-                    } else {
-                        LinearProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = GhSuccessGreen,
-                            trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
-                    }
+                    LinearProgressIndicator(
+                        progress = { (currentProgress ?: 0f).coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = GhSuccessGreen,
+                        trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
